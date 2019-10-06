@@ -1,0 +1,15 @@
+[90m[==>] this is a progress line[0m
+[36m[dbg] this is a verbose line[0m
+[37m[nfo] this is an info line[0m
+[93m[WRN] this is a warning line[0m
+[91m[ERR] this is an error line[0m
+[36m[dbg] this is a verbose line[0m
+[37m[nfo] this is an info line[0m
+[93m[WRN] this is a warning line[0m
+[91m[ERR] this is an error line[0m
+[37m[nfo] this is an info line[0m
+[93m[WRN] this is a warning line[0m
+[91m[ERR] this is an error line[0m
+[93m[WRN] this is a warning line[0m
+[91m[ERR] this is an error line[0m
+[91m[ERR] this is an error line[0m
