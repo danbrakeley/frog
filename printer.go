@@ -9,12 +9,11 @@ import (
 )
 
 type Printer struct {
-	CanUseAnsi bool
 	PrintTime  bool
 	PrintLevel bool
 }
 
-func (p *Printer) Sprintf(level Level, format string, a ...interface{}) string {
+func (p *Printer) Render(useAnsi bool, useColor bool, level Level, format string, a ...interface{}) string {
 	// trim newlines from the ends
 	for strings.HasPrefix(format, "\n") {
 		format = format[1:]
@@ -28,7 +27,7 @@ func (p *Printer) Sprintf(level Level, format string, a ...interface{}) string {
 
 	var out []string
 
-	if p.CanUseAnsi {
+	if useAnsi && useColor {
 		var str string
 		switch level {
 		case Progress:
@@ -74,7 +73,7 @@ func (p *Printer) Sprintf(level Level, format string, a ...interface{}) string {
 
 	out = append(out, fmt.Sprintf(format, a...))
 
-	if p.CanUseAnsi {
+	if useAnsi && useColor {
 		out = append(out, ansi.Esc+ansi.Reset+"m")
 	}
 

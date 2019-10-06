@@ -2,7 +2,6 @@ package frog
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -12,33 +11,36 @@ import (
 
 type Buffered struct {
 	minLevel Level
-	writer   io.Writer
-	p        Printer
+	cfg      Config
+	prn      Printer
 	ch       chan Msg
 	wg       sync.WaitGroup
 
-	lastLine int32 // to keep thread safe, use atomic reads/writes/math
+	isClosed       int32 // to keep thread safe, use atomic reads/writes/math
+	openFixedLines int32 // to keep thread safe, use atomic reads/writes/math
 }
 
 type MsgType byte
 
 const (
-	MsgPrint MsgType = iota
-	MsgFatal
-	MsgAddLine
+	MsgPrint      MsgType = iota // string to print
+	MsgFatal                     // stop processor without closing channel
+	MsgAddLine                   // add a fixed line
+	MsgRemoveLine                // remove a fixed line
 )
 
 type Msg struct {
-	Type MsgType
-	Line int32
-	Msg  string
+	Type  MsgType
+	Line  int32
+	Level Level
+	Msg   string
 }
 
-func NewBuffered(w io.Writer, p Printer) *Buffered {
+func NewBuffered(cfg Config, prn Printer) *Buffered {
 	l := &Buffered{
 		minLevel: Info,
-		writer:   w,
-		p:        p,
+		cfg:      cfg,
+		prn:      prn,
 		ch:       make(chan Msg),
 		wg:       sync.WaitGroup{},
 	}
@@ -52,63 +54,154 @@ func NewBuffered(w io.Writer, p Printer) *Buffered {
 	return l
 }
 
-// Close should be called before the app exits, to ensure any last line is done writing.
+// Close should be called before the app exits, to ensure any buffered output is flushed.
+// Thread safe.
 func (l *Buffered) Close() {
+	isClosed := atomic.AddInt32(&l.isClosed, 1)
+	// protect against multiple calls to close
+	if isClosed != 1 {
+		return
+	}
+
 	l.Verbosef("buffered log closing")
 	close(l.ch)
 	l.wg.Wait()
 }
 
-// AddFixedLine creates a Logger that overwrites the same line.
+func (l *Buffered) RootLogger() Logger {
+	return l
+}
+
+// AddFixedLine creates a Logger that, when connected to a terminal, draws over itself.
 // Thread safe.
 func (l *Buffered) AddFixedLine() Logger {
-	lastLine := atomic.AddInt32(&l.lastLine, 1)
-	l.ch <- Msg{Type: MsgAddLine}
-	return newFixedLine(l, lastLine)
+	lineNum := atomic.AddInt32(&l.openFixedLines, 1)
+	l.ch <- Msg{Type: MsgAddLine, Line: lineNum}
+	onClose := func() {
+		atomic.AddInt32(&l.openFixedLines, -1)
+		l.ch <- Msg{Type: MsgRemoveLine, Line: lineNum}
+	}
+	return newFixedLine(l, lineNum, onClose)
 }
 
 func (l *Buffered) processor() {
+	type fixedLine struct {
+		lineNum int32
+		str     string
+	}
+	var fixedLines []fixedLine
+
+	fnMustFindIdx := func(line int32) int {
+		idx := -1
+		for i, v := range fixedLines {
+			if line == v.lineNum {
+				idx = i
+				break
+			}
+		}
+		if idx == -1 {
+			panic(fmt.Errorf("buffered logger cannot find line %d", line))
+		}
+		return idx
+	}
+
 	for {
 		msg, ok := <-l.ch
 		if !ok || msg.Type == MsgFatal {
 			return
 		}
 
-		lastLine := atomic.LoadInt32(&l.lastLine)
-
-		// if we can't use ansi, or there have been no fixed lines added, then just skip fancy formatting
-		if !l.p.CanUseAnsi || lastLine == 0 {
+		// if we can't use ansi, then just write the line, and ignore fixed line messages
+		if !l.cfg.UseAnsi {
 			if msg.Type == MsgPrint {
-				fmt.Fprintf(l.writer, "%s\n", msg.Msg)
+				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
 			}
 			continue
 		}
 
 		switch msg.Type {
 		case MsgAddLine:
-			// A new line has been added, so use a newline to scroll the console (if needed).
-			// The cursor is always left at the bottom, so it is already in the right spot for this.
-			fmt.Fprintf(l.writer, "\n")
-			continue
+			// ensure terminal scrolls down if needed to add a new line
+			fmt.Fprint(l.cfg.Writer, "\n")
+
+			// figure out where this new line goes
+			idx := 0
+			for _, v := range fixedLines {
+				if msg.Line < v.lineNum {
+					break
+				}
+				idx++
+			}
+
+			// and then insert it there
+			fixedLines = append(fixedLines, fixedLine{})
+			copy(fixedLines[idx+1:], fixedLines[idx:])
+			fixedLines[idx] = fixedLine{lineNum: msg.Line}
+
+			// if inserting has bumped any lines down, re-draw those lines in their new home
+			if idx < len(fixedLines)-1 {
+				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(len(fixedLines)-(idx+1)))
+				for i := idx + 1; i < len(fixedLines); i++ {
+					fmt.Fprint(l.cfg.Writer, fixedLines[i].str)
+					fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
+					fmt.Fprint(l.cfg.Writer, ansi.NextLine(1))
+				}
+			}
+
+		case MsgRemoveLine:
+			// find the line we are removing
+			idx := fnMustFindIdx(msg.Line)
+
+			// remove element
+			copy(fixedLines[idx:], fixedLines[idx+1:])
+			fixedLines = fixedLines[:len(fixedLines)-1]
+
+			// redraw/erase bottom lines as needed
+			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(fixedLines)-idx))
+			for i := idx; i < len(fixedLines); i++ {
+				fmt.Fprint(l.cfg.Writer, fixedLines[i].str)
+				fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
+				fmt.Fprint(l.cfg.Writer, ansi.NextLine(1))
+			}
+			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
+
 		case MsgPrint:
-			// Something tried to log without specifying a line, which isn't currently supported.
-			// For now, just print it at the bottom (will overwrite any previous line).
-			if msg.Line <= 0 {
-				fmt.Fprintf(l.writer, "%s%s\n", msg.Msg, ansi.EraseEOL)
+			// if we aren't using fixed lines, then just print normally
+			if len(fixedLines) == 0 {
+				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
 				continue
 			}
-			// fall out of this switch (without continuing)
-		default:
-			continue
-		}
 
-		// The cursor is kept under the bottom-most fixed line, so we'll move to the correct line,
-		// print, then move back.
-		offset := int(1 + lastLine - msg.Line)
-		fmt.Fprint(l.writer, ansi.PrevLine(offset))
-		fmt.Fprint(l.writer, msg.Msg)
-		fmt.Fprint(l.writer, ansi.EraseEOL)
-		fmt.Fprint(l.writer, ansi.NextLine(offset))
+			// If we are using fixed lines, but this msg doesn't have one specified, then move all
+			// the fixed lines down, and draw this line above them.
+			// If this does have a fixed line, but it is not Progress level, then also print it above.
+			if msg.Line <= 0 || msg.Level > Progress {
+				fmt.Fprint(l.cfg.Writer, "\n")
+				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(fixedLines)))
+				fmt.Fprintf(l.cfg.Writer, "%s%s\n", msg.Msg, ansi.EraseEOL)
+
+				for _, v := range fixedLines {
+					fmt.Fprintf(l.cfg.Writer, "%s%s\n", v.str, ansi.EraseEOL)
+				}
+
+				// if we aren't using fixed lines, then we're done here...
+				if msg.Line <= 0 {
+					continue
+				}
+			}
+
+			// The cursor is kept under the bottom-most fixed line, so we'll move to the correct line,
+			// print, then move back.
+			idx := fnMustFindIdx(msg.Line)
+			fixedLines[idx].str = msg.Msg
+			offset := int(len(fixedLines) - idx)
+			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(offset))
+			fmt.Fprint(l.cfg.Writer, msg.Msg)
+			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
+			fmt.Fprint(l.cfg.Writer, ansi.NextLine(offset))
+
+		default:
+		}
 	}
 }
 
@@ -128,12 +221,16 @@ func (l *Buffered) Printf(level Level, format string, a ...interface{}) Logger {
 	if level < l.minLevel {
 		return l
 	}
-	l.printfImpl(0, level, format, a...)
+	l.printfImpl(l.prn, 0, level, format, a...)
 	return l
 }
 
-func (l *Buffered) printfImpl(fixedLine int32, level Level, format string, a ...interface{}) {
-	l.ch <- Msg{Line: fixedLine, Msg: l.p.Sprintf(level, format, a...)}
+func (l *Buffered) printfImpl(prn Printer, fixedLine int32, level Level, format string, a ...interface{}) {
+	l.ch <- Msg{
+		Line:  fixedLine,
+		Level: level,
+		Msg:   prn.Render(l.cfg.UseAnsi, l.cfg.UseColor, level, format, a...),
+	}
 	if level == Fatal {
 		// we can't just close this channel, because another thread may still be trying to write to it
 		l.ch <- Msg{Type: MsgFatal}

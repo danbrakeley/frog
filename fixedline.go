@@ -1,5 +1,7 @@
 package frog
 
+import "sync"
+
 // FixedLine is a Logger that attempts to overwrite the same line in the terminal,
 // allowing progress bars and other simple UI for the human to consume.
 //
@@ -11,21 +13,37 @@ package frog
 // not pollute logs with garbage when not connected to a terminal.
 type FixedLine struct {
 	parent *Buffered
+	prn    Printer
 	line   int32
+
+	mutex     sync.RWMutex
+	fnOnClose func()
 }
 
-func newFixedLine(b *Buffered, line int32) *FixedLine {
-	return &FixedLine{parent: b, line: line}
+func newFixedLine(b *Buffered, line int32, fnOnClose func()) *FixedLine {
+	return &FixedLine{
+		parent:    b,
+		prn:       b.prn,
+		line:      line,
+		fnOnClose: fnOnClose,
+	}
 }
 
 func (l *FixedLine) Close() {
-	// Currently there's nothing line-specific to clean up.
-	// Unfortunately this call can't easily wait until all prints from this line are flushed.
+	l.mutex.Lock()
+	if l.fnOnClose != nil {
+		l.fnOnClose()
+		l.fnOnClose = nil
+	}
+	l.mutex.Unlock()
+}
+
+func (l *FixedLine) RootLogger() Logger {
+	return l.parent.RootLogger()
 }
 
 func (l *FixedLine) AddFixedLine() Logger {
-	// Currently just returns self
-	return l
+	return l.parent.AddFixedLine()
 }
 
 func (l *FixedLine) MinLevel() Level {
@@ -38,16 +56,22 @@ func (l *FixedLine) SetMinLevel(level Level) Logger {
 }
 
 func (l *FixedLine) Printf(level Level, format string, a ...interface{}) Logger {
-	if !l.parent.p.CanUseAnsi {
+	l.mutex.RLock()
+	isClosed := l.fnOnClose == nil
+	l.mutex.RUnlock()
+
+	// if this line is closed, or if the parent can't use ansi, then divert request to parent
+	if isClosed || !l.parent.cfg.UseAnsi {
 		l.parent.Printf(level, format, a...)
 		return l
 	}
 
+	// fixed lines allow Progress to print, regardless of MinLevel
 	if level < l.parent.MinLevel() && level != Progress {
 		return l
 	}
 
-	l.parent.printfImpl(l.line, level, format, a...)
+	l.parent.printfImpl(l.prn, l.line, level, format, a...)
 	return l
 }
 

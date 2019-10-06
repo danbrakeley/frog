@@ -6,6 +6,13 @@ import (
 	"github.com/mattn/go-isatty"
 )
 
+var IsNoColorSet = false
+
+func init() {
+	_, exists := os.LookupEnv("NO_COLOR")
+	IsNoColorSet = exists
+}
+
 type Level byte
 
 const (
@@ -24,8 +31,12 @@ type Logger interface {
 	// Close should be called before the process ends, to ensure everything is flushed.
 	Close()
 
+	// RootLogger returns the parent Logger, or itself if it has no parent.
+	RootLogger() Logger
+
 	// AddFixedLine creates a logger that always overwrites the same terminal line,
 	// and always writes line level Progress.
+	// Returned Logger should have its Close() called before its parent.
 	AddFixedLine() Logger
 
 	// MinLevel returns the lowest Level that will be logged.
@@ -46,15 +57,18 @@ type Logger interface {
 	Fatalf(format string, a ...interface{})
 }
 
-// New creates a Buffered logger that writes to os.Stdout.
+// New creates a Buffered logger that writes to os.Stdout, and autodetects
+// any attached Terminal on stdout to decide if ANSI should be used.
 // The caller is responsible for calling Close() before the process ends.
 func New() Logger {
-	return NewBuffered(
-		os.Stdout,
-		Printer{
-			CanUseAnsi: isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()),
-			PrintTime:  true,
-			PrintLevel: true,
-		},
-	)
+	cfg := Config{
+		Writer:   os.Stdout,
+		UseAnsi:  isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()),
+		UseColor: !IsNoColorSet,
+	}
+	prn := Printer{
+		PrintTime:  true,
+		PrintLevel: true,
+	}
+	return NewBuffered(cfg, prn)
 }

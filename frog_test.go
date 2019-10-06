@@ -10,38 +10,60 @@ import (
 
 var update = flag.Bool("update", false, "update golden files")
 
+type UseAnsiType bool
+type UseColorType bool
+
+const (
+	NoAnsi  UseAnsiType = false
+	UseAnsi UseAnsiType = true
+
+	NoColor  UseColorType = false
+	UseColor UseColorType = true
+)
+
 func Test_Golden(t *testing.T) {
 	cases := []struct {
-		Name    string
-		DoWork  func(Logger)
-		Printer Printer
+		Name     string
+		DoWork   func(Logger)
+		UseAnsi  UseAnsiType
+		UseColor UseColorType
+		Printer  Printer
 	}{
 		{
-			"min-level", minLevel,
-			Printer{CanUseAnsi: false, PrintTime: false, PrintLevel: true},
+			"min-level", minLevel, NoAnsi, UseColor,
+			Printer{PrintTime: false, PrintLevel: true},
 		},
 		{
-			"min-level-ansi", minLevel,
-			Printer{CanUseAnsi: true, PrintTime: false, PrintLevel: true},
+			"min-level-ansi", minLevel, UseAnsi, UseColor,
+			Printer{PrintTime: false, PrintLevel: true},
 		},
 		{
-			"trims-newlines", newlineVariations,
-			Printer{CanUseAnsi: false, PrintTime: false, PrintLevel: true},
+			"trims-newlines", newlineVariations, NoAnsi, UseColor,
+			Printer{PrintTime: false, PrintLevel: true},
 		},
 		{
-			"fixed-lines-ansi", fixedLines,
-			Printer{CanUseAnsi: true, PrintTime: false, PrintLevel: true},
+			"fixed-lines-ansi", fixedLines, UseAnsi, UseColor,
+			Printer{PrintTime: false, PrintLevel: true},
 		},
 		{
-			"fixed-lines-no-ansi", fixedLines,
-			Printer{CanUseAnsi: false, PrintTime: false, PrintLevel: true},
+			"fixed-lines-ansi-no-color", fixedLines, UseAnsi, NoColor,
+			Printer{PrintTime: false, PrintLevel: true},
+		},
+		{
+			"fixed-lines-no-ansi", fixedLines, NoAnsi, UseColor,
+			Printer{PrintTime: false, PrintLevel: true},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			l := NewBuffered(buf, tc.Printer)
+			cfg := Config{
+				Writer:   buf,
+				UseAnsi:  tc.UseAnsi == UseAnsi,
+				UseColor: tc.UseColor == UseColor,
+			}
+			l := NewBuffered(cfg, tc.Printer)
 			tc.DoWork(l)
 			l.Close()
 			actual := buf.Bytes()
