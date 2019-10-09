@@ -30,7 +30,7 @@ func (p *Printer) Render(useAnsi bool, useColor bool, level Level, format string
 	if useAnsi && useColor {
 		var str string
 		switch level {
-		case Progress:
+		case Transient:
 			str = ansi.Esc + ansi.FgDarkGray + "m"
 		case Verbose:
 			str = ansi.Esc + ansi.FgDarkCyan + "m"
@@ -53,7 +53,7 @@ func (p *Printer) Render(useAnsi bool, useColor bool, level Level, format string
 	if p.PrintLevel {
 		var str string
 		switch level {
-		case Progress:
+		case Transient:
 			str = "[==>] "
 		case Verbose:
 			str = "[dbg] "

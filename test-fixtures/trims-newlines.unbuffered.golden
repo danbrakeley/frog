@@ -1,0 +1,14 @@
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] most of these lines will end up the same
+[nfo] except¶these last couple of lines, which have newline breaks
+[nfo] except these¶last couple of lines, which¶have newline breaks
+[nfo] except these last¶couple of lines,¶¶which have newline breaks
+[nfo] except these last couple¶¶of lines, which have newline breaks
+[nfo] except these last couple of lines, which¶have¶newline breaks
+[nfo] except these last couple¶of lines, which have¶¶¶newline breaks

@@ -68,10 +68,6 @@ func (l *Buffered) Close() {
 	l.wg.Wait()
 }
 
-func (l *Buffered) RootLogger() Logger {
-	return l
-}
-
 // AddFixedLine creates a Logger that, when connected to a terminal, draws over itself.
 // Thread safe.
 func (l *Buffered) AddFixedLine() Logger {
@@ -174,8 +170,8 @@ func (l *Buffered) processor() {
 
 			// If we are using fixed lines, but this msg doesn't have one specified, then move all
 			// the fixed lines down, and draw this line above them.
-			// If this does have a fixed line, but it is not Progress level, then also print it above.
-			if msg.Line <= 0 || msg.Level > Progress {
+			// If this does have a fixed line, but it is not Transient level, then also print it above.
+			if msg.Line <= 0 || msg.Level > Transient {
 				fmt.Fprint(l.cfg.Writer, "\n")
 				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(fixedLines)))
 				fmt.Fprintf(l.cfg.Writer, "%s%s\n", msg.Msg, ansi.EraseEOL)
@@ -205,10 +201,6 @@ func (l *Buffered) processor() {
 	}
 }
 
-func (l *Buffered) MinLevel() Level {
-	return l.minLevel
-}
-
 func (l *Buffered) SetMinLevel(level Level) Logger {
 	if level < levelMin || level >= levelMax {
 		panic(fmt.Errorf("level %v is not in valid range [%v,%v)", level, levelMin, levelMax))
@@ -217,15 +209,16 @@ func (l *Buffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Buffered) Printf(level Level, format string, a ...interface{}) Logger {
+func (l *Buffered) Logf(level Level, format string, a ...interface{}) Logger {
 	if level < l.minLevel {
 		return l
 	}
-	l.printfImpl(l.prn, 0, level, format, a...)
+	l.logImpl(l.prn, 0, level, format, a...)
 	return l
 }
 
-func (l *Buffered) printfImpl(prn Printer, fixedLine int32, level Level, format string, a ...interface{}) {
+// logImpl is only called if the line will be shown, regardless of level, line, etc
+func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format string, a ...interface{}) {
 	l.ch <- Msg{
 		Line:  fixedLine,
 		Level: level,
@@ -239,31 +232,31 @@ func (l *Buffered) printfImpl(prn Printer, fixedLine int32, level Level, format 
 	}
 }
 
-func (l *Buffered) Progressf(format string, a ...interface{}) Logger {
-	l.Printf(Progress, format, a...)
+func (l *Buffered) Transientf(format string, a ...interface{}) Logger {
+	l.Logf(Transient, format, a...)
 	return l
 }
 
 func (l *Buffered) Verbosef(format string, a ...interface{}) Logger {
-	l.Printf(Verbose, format, a...)
+	l.Logf(Verbose, format, a...)
 	return l
 }
 
 func (l *Buffered) Infof(format string, a ...interface{}) Logger {
-	l.Printf(Info, format, a...)
+	l.Logf(Info, format, a...)
 	return l
 }
 
 func (l *Buffered) Warningf(format string, a ...interface{}) Logger {
-	l.Printf(Warning, format, a...)
+	l.Logf(Warning, format, a...)
 	return l
 }
 
 func (l *Buffered) Errorf(format string, a ...interface{}) Logger {
-	l.Printf(Error, format, a...)
+	l.Logf(Error, format, a...)
 	return l
 }
 
 func (l *Buffered) Fatalf(format string, a ...interface{}) {
-	l.Printf(Fatal, format, a...)
+	l.Logf(Fatal, format, a...)
 }

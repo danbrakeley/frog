@@ -8,7 +8,7 @@ import "sync"
 // If the Printer's CanUseAnsi is false, then it simply redirects to the normal
 // behavior of the parent Buffered Logger.
 //
-// If the Printer's CanUseAnsi is true, then the Progress level is always
+// If the Printer's CanUseAnsi is true, then the Transient level is always
 // printed, regardless of the MinLevel. This allows progress bars that do
 // not pollute logs with garbage when not connected to a terminal.
 type FixedLine struct {
@@ -38,16 +38,8 @@ func (l *FixedLine) Close() {
 	l.mutex.Unlock()
 }
 
-func (l *FixedLine) RootLogger() Logger {
-	return l.parent.RootLogger()
-}
-
-func (l *FixedLine) AddFixedLine() Logger {
-	return l.parent.AddFixedLine()
-}
-
-func (l *FixedLine) MinLevel() Level {
-	return l.parent.MinLevel()
+func (l *FixedLine) Parent() Logger {
+	return l.parent
 }
 
 func (l *FixedLine) SetMinLevel(level Level) Logger {
@@ -55,51 +47,47 @@ func (l *FixedLine) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *FixedLine) Printf(level Level, format string, a ...interface{}) Logger {
+func (l *FixedLine) Logf(level Level, format string, a ...interface{}) Logger {
 	l.mutex.RLock()
 	isClosed := l.fnOnClose == nil
 	l.mutex.RUnlock()
 
-	// if this line is closed, or if the parent can't use ansi, then divert request to parent
-	if isClosed || !l.parent.cfg.UseAnsi {
-		l.parent.Printf(level, format, a...)
+	// most of the time, we want to our default parent behavior
+	if isClosed || !l.parent.cfg.UseAnsi || level != Transient {
+		l.parent.Logf(level, format, a...)
 		return l
 	}
 
-	// fixed lines allow Progress to print, regardless of MinLevel
-	if level < l.parent.MinLevel() && level != Progress {
-		return l
-	}
-
-	l.parent.printfImpl(l.prn, l.line, level, format, a...)
+	// if we really do have a fixed line we want to print, then go straight to the source
+	l.parent.logImpl(l.prn, l.line, level, format, a...)
 	return l
 }
 
-func (l *FixedLine) Progressf(format string, a ...interface{}) Logger {
-	l.Printf(Progress, format, a...)
+func (l *FixedLine) Transientf(format string, a ...interface{}) Logger {
+	l.Logf(Transient, format, a...)
 	return l
 }
 
 func (l *FixedLine) Verbosef(format string, a ...interface{}) Logger {
-	l.Printf(Verbose, format, a...)
+	l.Logf(Verbose, format, a...)
 	return l
 }
 
 func (l *FixedLine) Infof(format string, a ...interface{}) Logger {
-	l.Printf(Info, format, a...)
+	l.Logf(Info, format, a...)
 	return l
 }
 
 func (l *FixedLine) Warningf(format string, a ...interface{}) Logger {
-	l.Printf(Warning, format, a...)
+	l.Logf(Warning, format, a...)
 	return l
 }
 
 func (l *FixedLine) Errorf(format string, a ...interface{}) Logger {
-	l.Printf(Error, format, a...)
+	l.Logf(Error, format, a...)
 	return l
 }
 
 func (l *FixedLine) Fatalf(format string, a ...interface{}) {
-	l.Printf(Fatal, format, a...)
+	l.Logf(Fatal, format, a...)
 }

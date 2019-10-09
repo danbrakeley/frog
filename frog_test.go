@@ -21,6 +21,21 @@ const (
 	UseColor UseColorType = true
 )
 
+func AssertGolden(t *testing.T, testName string, actual []byte) {
+	t.Helper()
+	golden := filepath.Join("test-fixtures", testName+".golden")
+	if *update {
+		ioutil.WriteFile(golden, actual, 0644)
+	}
+	expected, _ := ioutil.ReadFile(golden)
+	if !bytes.Equal(actual, expected) {
+		t.Errorf(
+			"golden file %s does not match output:\nGolden File:\n%s\nActual:\n%s",
+			golden, string(expected), string(actual),
+		)
+	}
+}
+
 func Test_Golden(t *testing.T) {
 	cases := []struct {
 		Name     string
@@ -57,36 +72,56 @@ func Test_Golden(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			buf := &bytes.Buffer{}
-			cfg := Config{
-				Writer:   buf,
-				UseAnsi:  tc.UseAnsi == UseAnsi,
-				UseColor: tc.UseColor == UseColor,
-			}
-			l := NewBuffered(cfg, tc.Printer)
-			tc.DoWork(l)
-			l.Close()
-			actual := buf.Bytes()
-			golden := filepath.Join("test-fixtures", tc.Name+".golden")
-			if *update {
-				ioutil.WriteFile(golden, actual, 0644)
+			// run against a Buffered Logger
+			{
+				buf := &bytes.Buffer{}
+				cfg := Config{
+					Writer:   buf,
+					UseAnsi:  tc.UseAnsi == UseAnsi,
+					UseColor: tc.UseColor == UseColor,
+				}
+				l := NewBuffered(cfg, tc.Printer)
+				tc.DoWork(l)
+				l.Close()
+				AssertGolden(t, tc.Name+".buffered", buf.Bytes())
 			}
 
-			expected, _ := ioutil.ReadFile(golden)
-			if !bytes.Equal(actual, expected) {
-				t.Errorf(
-					"golden file does not match output:\nGolden File:\n%s\nActual:\n%s",
-					string(expected), string(actual),
-				)
+			// run against an Unbuffered Logger
+			{
+				buf := &bytes.Buffer{}
+				l := NewUnbuffered(buf, tc.Printer)
+				tc.DoWork(l)
+				l.Close()
+				AssertGolden(t, tc.Name+".unbuffered", buf.Bytes())
+			}
+
+			// run against a TeeLogger, with a Buffered as Primary and Unbuffered as Secondary
+			{
+				buf1 := &bytes.Buffer{}
+				cfg := Config{
+					Writer:   buf1,
+					UseAnsi:  tc.UseAnsi == UseAnsi,
+					UseColor: tc.UseColor == UseColor,
+				}
+				bl := NewBuffered(cfg, tc.Printer)
+
+				buf2 := &bytes.Buffer{}
+				ul := NewUnbuffered(buf2, tc.Printer)
+
+				tee := &TeeLogger{Primary: bl, Secondary: ul}
+				tc.DoWork(tee)
+				tee.Close()
+				AssertGolden(t, tc.Name+".buffered", buf1.Bytes())
+				AssertGolden(t, tc.Name+".unbuffered", buf2.Bytes())
 			}
 		})
 	}
 }
 
 func minLevel(l Logger) {
-	for _, level := range []Level{Progress, Verbose, Info, Warning, Error} {
+	for _, level := range []Level{Transient, Verbose, Info, Warning, Error} {
 		l.SetMinLevel(level)
-		l.Progressf("this is a progress line")
+		l.Transientf("this is a transient line")
 		l.Verbosef("this is a verbose line")
 		l.Infof("this is an info line")
 		l.Warningf("this is a warning line")
@@ -113,17 +148,17 @@ func newlineVariations(l Logger) {
 
 func fixedLines(l Logger) {
 	f := []Logger{
-		l.AddFixedLine(),
-		l.AddFixedLine(),
-		l.AddFixedLine(),
+		AddFixedLine(l),
+		AddFixedLine(l),
+		AddFixedLine(l),
 	}
-	f[0].Progressf("write to first line")
-	f[1].Progressf("write to second line")
-	f[2].Progressf("write to third line")
-	f[0].Progressf("write back to first line")
-	f[2].Progressf("now we're on the third line again")
+	f[0].Transientf("write to first line")
+	f[1].Transientf("write to second line")
+	f[2].Transientf("write to third line")
+	f[0].Transientf("write back to first line")
+	f[2].Transientf("now we're on the third line again")
 	f[0].Warningf("something unexpected happened on the first line")
-	f[1].Progressf("done")
-	f[2].Progressf("done")
-	f[0].Progressf("done")
+	f[1].Transientf("done")
+	f[2].Transientf("done")
+	f[0].Transientf("done")
 }
