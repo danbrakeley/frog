@@ -2,8 +2,6 @@ package frog
 
 import (
 	"os"
-
-	"github.com/mattn/go-isatty"
 )
 
 var IsNoColorSet = false
@@ -12,20 +10,6 @@ func init() {
 	_, exists := os.LookupEnv("NO_COLOR")
 	IsNoColorSet = exists
 }
-
-type Level byte
-
-const (
-	Transient Level = iota // strictly unimportant, ie progress bars, real-time byte counts, estimated time remaining, etc
-	Verbose                // debugging info
-	Info                   // normal message
-	Warning                // something unusual happened
-	Error                  // something bad happened
-	Fatal                  // stop everything right now
-
-	levelMax
-	levelMin Level = 0
-)
 
 type Logger interface {
 	// Close ensures any buffers are flushed and any resources released.
@@ -61,75 +45,4 @@ type FixedLineLogger interface {
 	// and always writes line level Progress.
 	// Returned Logger should have its Close() called before its parent.
 	AddFixedLine() Logger
-}
-
-type NewLogger byte
-
-const (
-	Auto NewLogger = iota
-	Basic
-)
-
-// New creates a Buffered logger that writes to os.Stdout, and autodetects
-// any attached Terminal on stdout to decide if ANSI should be used.
-// The caller is responsible for calling Close() before the process ends.
-func New(t NewLogger) Logger {
-	prn := Printer{
-		PrintTime:  true,
-		PrintLevel: true,
-	}
-
-	switch t {
-	case Auto:
-		cfg := Config{
-			Writer:   os.Stdout,
-			UseAnsi:  isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()),
-			UseColor: !IsNoColorSet,
-		}
-		return NewBuffered(cfg, prn)
-
-	case Basic:
-		return NewUnbuffered(os.Stdout, prn)
-	}
-
-	return nil
-}
-
-// AddFixedLine adds a new logger on a fixed line, if supported.
-// Else, returns passed in Logger.
-func AddFixedLine(log Logger) Logger {
-	fll, ok := log.(FixedLineLogger)
-	if ok {
-		fl := fll.AddFixedLine()
-		if fl == nil {
-			return log
-		}
-		return fl
-	}
-	// if we are a child that doesn't create its own fixed lines, then pass up to parent
-	parent := Parent(log)
-	if parent != nil {
-		return AddFixedLine(parent)
-	}
-	return log
-}
-
-func Parent(log Logger) Logger {
-	child, ok := log.(ChildLogger)
-	if !ok {
-		return nil
-	}
-	return child.Parent()
-}
-
-func ParentOrSelf(log Logger) Logger {
-	child, ok := log.(ChildLogger)
-	if !ok {
-		return log
-	}
-	parent := child.Parent()
-	if parent == nil {
-		return log
-	}
-	return parent
 }

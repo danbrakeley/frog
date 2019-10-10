@@ -46,27 +46,27 @@ func Test_Golden(t *testing.T) {
 	}{
 		{
 			"min-level", minLevel, NoAnsi, UseColor,
-			Printer{PrintTime: false, PrintLevel: true},
+			&TextPrinter{PrintTime: false, PrintLevel: true},
 		},
 		{
 			"min-level-ansi", minLevel, UseAnsi, UseColor,
-			Printer{PrintTime: false, PrintLevel: true},
+			&TextPrinter{PrintTime: false, PrintLevel: true},
 		},
 		{
 			"trims-newlines", newlineVariations, NoAnsi, UseColor,
-			Printer{PrintTime: false, PrintLevel: true},
+			&TextPrinter{PrintTime: false, PrintLevel: true},
 		},
 		{
 			"fixed-lines-ansi", fixedLines, UseAnsi, UseColor,
-			Printer{PrintTime: false, PrintLevel: true},
+			&TextPrinter{PrintTime: false, PrintLevel: true},
 		},
 		{
 			"fixed-lines-ansi-no-color", fixedLines, UseAnsi, NoColor,
-			Printer{PrintTime: false, PrintLevel: true},
+			&TextPrinter{PrintTime: false, PrintLevel: true},
 		},
 		{
 			"fixed-lines-no-ansi", fixedLines, NoAnsi, UseColor,
-			Printer{PrintTime: false, PrintLevel: true},
+			&TextPrinter{PrintTime: false, PrintLevel: true},
 		},
 	}
 

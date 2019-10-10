@@ -11,16 +11,22 @@ import (
 )
 
 var verbose = flag.Bool("verbose", false, "drop min level from info to verbose")
+var json = flag.Bool("json", false, "drop min level from info to verbose")
 
 func main() {
 	flag.Parse()
 
-	log := frog.New(frog.Auto)
+	style := frog.Auto
+	if *json {
+		style = frog.JSON
+	}
+	log := frog.New(style)
 	defer log.Close()
 
 	log.Infof("Frog Example App")
 	log.Infof("Flags:")
 	log.Infof("  --verbose   : enable Verbose level logging")
+	log.Infof("  --json      : output structured JSON")
 	log.Infof("os.Args:")
 	log.Infof("  %v", os.Args)
 
