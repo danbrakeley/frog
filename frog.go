@@ -48,9 +48,9 @@ func New(t NewLogger) Logger {
 // AddFixedLine adds a new logger on a fixed line, if supported.
 // Else, returns passed in Logger.
 func AddFixedLine(log Logger) Logger {
-	fll, ok := log.(FixedLineLogger)
+	fla, ok := log.(FixedLineAdder)
 	if ok {
-		fl := fll.AddFixedLine()
+		fl := fla.AddFixedLine()
 		if fl == nil {
 			return log
 		}
@@ -62,6 +62,13 @@ func AddFixedLine(log Logger) Logger {
 		return AddFixedLine(parent)
 	}
 	return log
+}
+
+func RemoveFixedLine(log Logger) {
+	flr, ok := log.(FixedLineRemover)
+	if ok {
+		flr.RemoveFixedLine()
+	}
 }
 
 func Parent(log Logger) Logger {

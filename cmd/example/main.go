@@ -54,7 +54,7 @@ func main() {
 			fl.Verbosef("spawned thread %d", n)
 			runProcess(fl, n)
 			fl.Verbosef("closing thread %d", n)
-			fl.Close()
+			frog.RemoveFixedLine(fl)
 			wg.Done()
 		}()
 	}

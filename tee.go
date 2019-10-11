@@ -18,6 +18,11 @@ func (l *TeeLogger) AddFixedLine() Logger {
 	}
 }
 
+func (l *TeeLogger) RemoveFixedLine() {
+	RemoveFixedLine(l.Primary)
+	RemoveFixedLine(l.Secondary)
+}
+
 func (l *TeeLogger) SetMinLevel(level Level) Logger {
 	l.Primary.SetMinLevel(level)
 	l.Secondary.SetMinLevel(level)

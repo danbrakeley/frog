@@ -38,11 +38,14 @@ type ChildLogger interface {
 	Parent() Logger
 }
 
-// FixedLineLogger is the interface for loggers that support fixing a line in place,
+// FixedLineAdder is the interface for loggers that support fixing a line in place,
 // for progress bars or other transient status messages.
-type FixedLineLogger interface {
-	// AddFixedLine creates a logger that always overwrites the same terminal line,
-	// and always writes line level Progress.
-	// Returned Logger should have its Close() called before its parent.
+type FixedLineAdder interface {
 	AddFixedLine() Logger
+}
+
+// FixedLineRemover is the interface that a fixed line logger must implement
+// in order for the fixed line to be removed before app end.
+type FixedLineRemover interface {
+	RemoveFixedLine()
 }

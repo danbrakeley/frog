@@ -1,6 +1,9 @@
 package frog
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // FixedLine is a Logger that attempts to overwrite the same line in the terminal,
 // allowing progress bars and other simple UI for the human to consume.
@@ -29,13 +32,17 @@ func newFixedLine(b *Buffered, line int32, fnOnClose func()) *FixedLine {
 	}
 }
 
-func (l *FixedLine) Close() {
+func (l *FixedLine) RemoveFixedLine() {
 	l.mutex.Lock()
 	if l.fnOnClose != nil {
 		l.fnOnClose()
 		l.fnOnClose = nil
 	}
 	l.mutex.Unlock()
+}
+
+func (l *FixedLine) Close() {
+	panic(fmt.Errorf("called Close on a FixedLine logger"))
 }
 
 func (l *FixedLine) Parent() Logger {

@@ -88,11 +88,20 @@ func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, format st
 	return strings.Join(out, "")
 }
 
-type JSONPrinter struct{}
+type JSONPrinter struct {
+	TimeOverride time.Time
+}
 
 func (p *JSONPrinter) Render(useAnsi bool, useColor bool, level Level, format string, a ...interface{}) string {
+	var stamp time.Time
+	if !p.TimeOverride.IsZero() {
+		stamp = p.TimeOverride
+	} else {
+		stamp = time.Now()
+	}
+
 	return fmt.Sprintf(`{"timestamp":"%s","level":"%s","msg":"%s"}`,
-		time.Now().Format(time.RFC3339),
+		stamp.Format(time.RFC3339),
 		level.String(),
 		escapeStringForJSON(fmt.Sprintf(trimNewlines(format), a...)),
 	)

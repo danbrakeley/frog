@@ -51,7 +51,7 @@ Another option is `frog.JSON`, which uses an Unbuffered Logger that formats each
 
 Notice that when you run this second example, all the Transient lines are not output. Transient lines are by default only output when sent to a `Logger` responsible for a fixed line.
 
-Also notice that when we want to create a fixed line, we make a call on the `frog` package, and not directly to our `Logger`. `Logger` is an interface, and most implementations of that interface will probably not care about fixed lines, so it was decided not to make it a mandatory part of the `Logger` interface. Instead, any `Logger` that wants to support fixed liens will need to implement not only the `Logger` interface, but also the `FixedLineLogger` interface, which is what `AddFixedLine` looks for on the passed in `Logger`.
+Also notice that when we want to create a fixed line, we make a call on the `frog` package, and not directly to our `Logger`. `Logger` is an interface, and most implementations of that interface will probably not care about fixed lines, so it was decided not to make it a mandatory part of the `Logger` interface. Instead, any `Logger` that wants to support fixed liens will need to implement not only the `Logger` interface, but also the `FixedLineAdder` interface, which is what `AddFixedLine` looks for on the passed in `Logger`.
 
 Here's a complete list of Frog's log levels, and their intended uses:
 
@@ -68,7 +68,7 @@ level | description
 
 - ✓ ~~Write to two Loggers simultaneously~~
 - ✓ ~~JSON Printer~~
-- Close should not be how you remove a fixed log line (so that Close isn't called early when fixed lines aren't supported and AddFixedLine returns whatever log you passed it)
+- ✓ ~~rework how fixed lines are released~~
 - hide cursor while it moves around during fixed line redraws
 - Structured logging
 - Only re-draw the parts of fixed lines that have changed

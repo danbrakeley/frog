@@ -29,7 +29,7 @@ func main() {
 		go func() {
 			runProcess(fixed, n)
 			fixed.Infof("thread %d finished", n)
-			fixed.Close()
+			frog.RemoveFixedLine(fixed)
 			wg.Done()
 		}()
 	}

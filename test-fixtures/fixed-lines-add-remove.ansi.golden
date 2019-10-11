@@ -1,0 +1,23 @@
+[nfo] before adding fixed logger 1
+
+[1F[==>] first fixed line[K[1E
+[2F[WRN] main logger should still log properly[K
+[==>] first fixed line[K
+[1F[==>] first fixed line again[K[1E[1F[K[nfo] after removing fixed logger 1
+[nfo] before adding fixed logger 2
+
+
+[2F[nfo] before adding fixed logger 3[K
+[K
+
+[2F[==>] logger 2 status update A[K[2E
+[3F[nfo] regular log[K
+[==>] logger 2 status update A[K
+[K
+[1F[==>] logger 3 status update A[K[1E
+[3F[nfo] another regular log (via fl2)[K
+[==>] logger 2 status update A[K
+[==>] logger 3 status update A[K
+[1F[==>] logger 3 status update B[K[1E[2F[==>] logger 2 status update B[K[2E[1F[K
+[2F[nfo] this should be redirected to parent logger[K
+[==>] logger 2 status update B[K
