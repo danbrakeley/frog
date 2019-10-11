@@ -69,6 +69,5 @@ level | description
 - ✓ ~~Write to two Loggers simultaneously~~
 - ✓ ~~JSON Printer~~
 - ✓ ~~rework how fixed lines are released~~
-- hide cursor while it moves around during fixed line redraws
 - Structured logging
-- Only re-draw the parts of fixed lines that have changed
+- hide cursor while it moves around during fixed line redraws

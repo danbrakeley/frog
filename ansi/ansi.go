@@ -6,57 +6,65 @@ import (
 )
 
 // Useful references:
+// https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+// https://en.wikipedia.org/wiki/ANSI_escape_code
 // http://www.termsys.demon.co.uk/vtansi.htm
 
 const (
-	Esc = "\u001b["
+	Esc = "\u001b"
+	CSI = Esc + "[" // Control Sequence Introducer
 
 	// Move cursor to screen-relative locations
 
-	TopLeft  = Esc + "H"
-	LeftMost = Esc + "1G" // stays on current line
+	TopLeft  = CSI + "H"
+	LeftMost = CSI + "1G" // stays on current line
 
 	// Save/Restore cursor position
 
-	PosSave    = Esc + "s" // saves the current cursor position
-	PosRestore = Esc + "u" // restores cursor position to the last save
+	PosSave    = CSI + "s" // saves the current cursor position
+	PosRestore = CSI + "u" // restores cursor position to the last save
 
 	// Erase commands do not move cursor, escept where noted
 
-	EraseEOL    = Esc + "K"  // erase to end of current line
-	EraseSOL    = Esc + "1K" // erase to start of current line
-	EraseLine   = Esc + "2K" // erase from start to end of current line
-	EraseDown   = Esc + "J"  // erase to end of current line, then everything down to bottom of screen
-	EraseUp     = Esc + "1J" // erase to start of current line, then everything up to top of screen
-	EraseScreen = Esc + "2J" // erases everything to background colour, then moves cursor home
+	EraseEOL    = CSI + "K"  // erase to end of current line
+	EraseSOL    = CSI + "1K" // erase to start of current line
+	EraseLine   = CSI + "2K" // erase from start to end of current line
+	EraseDown   = CSI + "J"  // erase to end of current line, then everything down to bottom of screen
+	EraseUp     = CSI + "1J" // erase to start of current line, then everything up to top of screen
+	EraseScreen = CSI + "2J" // erases everything to background colour, then moves cursor home
+
+	// DECTCEM commands
+
+	ShowCursor = CSI + "?25h"
+	HideCursor = CSI + "?25l"
 )
 
 func Up(n int) string {
-	return fmt.Sprintf(Esc+"%dA", n)
+	return fmt.Sprintf(CSI+"%dA", n)
 }
 
 func Down(n int) string {
-	return fmt.Sprintf(Esc+"%dB", n)
+	return fmt.Sprintf(CSI+"%dB", n)
 }
 
 func Right(n int) string {
-	return fmt.Sprintf(Esc+"%dC", n)
+	return fmt.Sprintf(CSI+"%dC", n)
 }
 
 func Left(n int) string {
-	return fmt.Sprintf(Esc+"%dD", n)
+	return fmt.Sprintf(CSI+"%dD", n)
 }
 
 // NextLine moves cursor to start of line n below current
 // (stops at bottom of viewable area, does not cause a scroll)
 func NextLine(n int) string {
-	return fmt.Sprintf(Esc+"%dE", n)
+	return fmt.Sprintf(CSI+"%dE", n)
 }
 
 // PrevLine moves cursor to start of line n above current
 // (stops at top of viewable area)
 func PrevLine(n int) string {
-	return fmt.Sprintf(Esc+"%dF", n)
+	return fmt.Sprintf(CSI+"%dF", n)
 }
 
 const (
@@ -106,7 +114,7 @@ const (
 func SGR(params ...string) string {
 	var sb strings.Builder
 	sb.Grow(len(params)*4 + 2) // worst case: n 3-char params, n-1 semicolons, <esc>, '[', and 'm'
-	sb.WriteString(Esc)
+	sb.WriteString(CSI)
 	for i, v := range params {
 		if i != 0 {
 			sb.WriteRune(';')

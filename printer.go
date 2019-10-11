@@ -39,17 +39,17 @@ func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, format st
 		var str string
 		switch level {
 		case Transient:
-			str = ansi.Esc + ansi.FgDarkGray + "m"
+			str = ansi.CSI + ansi.FgDarkGray + "m"
 		case Verbose:
-			str = ansi.Esc + ansi.FgDarkCyan + "m"
+			str = ansi.CSI + ansi.FgDarkCyan + "m"
 		case Info:
-			str = ansi.Esc + ansi.FgLightGray + "m"
+			str = ansi.CSI + ansi.FgLightGray + "m"
 		case Warning:
-			str = ansi.Esc + ansi.FgYellow + "m"
+			str = ansi.CSI + ansi.FgYellow + "m"
 		case Error, Fatal:
-			str = ansi.Esc + ansi.FgRed + "m"
+			str = ansi.CSI + ansi.FgRed + "m"
 		default:
-			str = ansi.Esc + ansi.BgWhite + ";" + ansi.FgBlack + "m"
+			str = ansi.CSI + ansi.BgWhite + ";" + ansi.FgBlack + "m"
 		}
 		out = append(out, str)
 	}
@@ -82,7 +82,7 @@ func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, format st
 	out = append(out, fmt.Sprintf(format, a...))
 
 	if useAnsi && useColor {
-		out = append(out, ansi.Esc+ansi.Reset+"m")
+		out = append(out, ansi.CSI+ansi.Reset+"m")
 	}
 
 	return strings.Join(out, "")
