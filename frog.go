@@ -6,6 +6,13 @@ import (
 	"github.com/mattn/go-isatty"
 )
 
+var isNoColorSet = false
+
+func init() {
+	_, exists := os.LookupEnv("NO_COLOR")
+	isNoColorSet = exists
+}
+
 type NewLogger byte
 
 const (
@@ -23,7 +30,7 @@ func New(t NewLogger) Logger {
 		cfg := Config{
 			Writer:   os.Stdout,
 			UseAnsi:  isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()),
-			UseColor: !IsNoColorSet,
+			UseColor: !isNoColorSet,
 		}
 		prn := &TextPrinter{
 			PrintTime:  true,

@@ -1,7 +1,5 @@
 package frog
 
-import "fmt"
-
 type Level byte
 
 const (
@@ -15,15 +13,6 @@ const (
 	levelMax
 	levelMin Level = 0
 )
-
-func init() {
-	// ensure all levels have a valid string
-	for l := levelMin; l < levelMax; l++ {
-		if len(l.String()) == 0 {
-			panic(fmt.Errorf("Empty String returned for level %d", int(l)))
-		}
-	}
-}
 
 func (l Level) String() string {
 	switch l {

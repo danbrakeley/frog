@@ -13,24 +13,24 @@ type Buffered struct {
 	minLevel Level
 	cfg      Config
 	prn      Printer
-	ch       chan Msg
+	ch       chan bufmsg
 	wg       sync.WaitGroup
 
 	isClosed       int32 // to keep thread safe, use atomic reads/writes/math
 	openFixedLines int32 // to keep thread safe, use atomic reads/writes/math
 }
 
-type MsgType byte
+type msgType byte
 
 const (
-	MsgPrint      MsgType = iota // string to print
-	MsgFatal                     // stop processor without closing channel
-	MsgAddLine                   // add a fixed line
-	MsgRemoveLine                // remove a fixed line
+	mtPrint      msgType = iota // string to print
+	mtFatal                     // stop processor without closing channel
+	mtAddLine                   // add a fixed line
+	mtRemoveLine                // remove a fixed line
 )
 
-type Msg struct {
-	Type  MsgType
+type bufmsg struct {
+	Type  msgType
 	Line  int32
 	Level Level
 	Msg   string
@@ -41,7 +41,7 @@ func NewBuffered(cfg Config, prn Printer) *Buffered {
 		minLevel: Info,
 		cfg:      cfg,
 		prn:      prn,
-		ch:       make(chan Msg),
+		ch:       make(chan bufmsg),
 		wg:       sync.WaitGroup{},
 	}
 
@@ -72,10 +72,10 @@ func (l *Buffered) Close() {
 // Thread safe.
 func (l *Buffered) AddFixedLine() Logger {
 	lineNum := atomic.AddInt32(&l.openFixedLines, 1)
-	l.ch <- Msg{Type: MsgAddLine, Line: lineNum}
+	l.ch <- bufmsg{Type: mtAddLine, Line: lineNum}
 	onClose := func() {
 		atomic.AddInt32(&l.openFixedLines, -1)
-		l.ch <- Msg{Type: MsgRemoveLine, Line: lineNum}
+		l.ch <- bufmsg{Type: mtRemoveLine, Line: lineNum}
 	}
 	return newFixedLine(l, lineNum, onClose)
 }
@@ -103,20 +103,20 @@ func (l *Buffered) processor() {
 
 	for {
 		msg, ok := <-l.ch
-		if !ok || msg.Type == MsgFatal {
+		if !ok || msg.Type == mtFatal {
 			return
 		}
 
 		// if we can't use ansi, then just write the line, and ignore fixed line messages
 		if !l.cfg.UseAnsi {
-			if msg.Type == MsgPrint {
+			if msg.Type == mtPrint {
 				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
 			}
 			continue
 		}
 
 		switch msg.Type {
-		case MsgAddLine:
+		case mtAddLine:
 			// ensure terminal scrolls down if needed to add a new line
 			fmt.Fprint(l.cfg.Writer, "\n")
 
@@ -144,7 +144,7 @@ func (l *Buffered) processor() {
 				}
 			}
 
-		case MsgRemoveLine:
+		case mtRemoveLine:
 			// find the line we are removing
 			idx := fnMustFindIdx(msg.Line)
 
@@ -161,7 +161,7 @@ func (l *Buffered) processor() {
 			}
 			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
 
-		case MsgPrint:
+		case mtPrint:
 			// if we aren't using fixed lines, then just print normally
 			if len(fixedLines) == 0 {
 				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
@@ -219,14 +219,14 @@ func (l *Buffered) Logf(level Level, format string, a ...interface{}) Logger {
 
 // logImpl is only called if the line will be shown, regardless of level, line, etc
 func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format string, a ...interface{}) {
-	l.ch <- Msg{
+	l.ch <- bufmsg{
 		Line:  fixedLine,
 		Level: level,
 		Msg:   prn.Render(l.cfg.UseAnsi, l.cfg.UseColor, level, format, a...),
 	}
 	if level == Fatal {
 		// we can't just close this channel, because another thread may still be trying to write to it
-		l.ch <- Msg{Type: MsgFatal}
+		l.ch <- bufmsg{Type: mtFatal}
 		l.wg.Wait()
 		os.Exit(-1)
 	}

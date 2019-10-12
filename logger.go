@@ -1,16 +1,5 @@
 package frog
 
-import (
-	"os"
-)
-
-var IsNoColorSet = false
-
-func init() {
-	_, exists := os.LookupEnv("NO_COLOR")
-	IsNoColorSet = exists
-}
-
 type Logger interface {
 	// Close ensures any buffers are flushed and any resources released.
 	// It is safe to call Close more than once (but consecutive calls do nothing).
