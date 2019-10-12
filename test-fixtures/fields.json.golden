@@ -1,0 +1,47 @@
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"bool","true":true}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"bool","false":false}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"byte","min":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"byte","max":255}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"time.Duration","how_long":"2m5s"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"time.Duration","this_long":"4h48m1s"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"error","error":"this is the error"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"error","error":null}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"float32","floatymc":3.333343267440796}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"float32","floatface":-2.0000000072549875e-15}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"float64","flargen":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"float64","blargen":-1.234456e+78}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"int","zero":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"int","negative":-1}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"int8","max":127}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"int8","min":-128}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"int16","max":32767}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"int16","min":-32768}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"int32","max":2147483647}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"int32","min":-2147483648}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"int64","max":9223372036854775807}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"int64","min":-9223372036854775808}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"string","empty":""}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"string","space":" "}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"string","quotes":"\""}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"string","newline":"\n"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"string","newline":"a"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"string","punctuation":"!@#$%^\u0026*()_+-=[]{}|;':,.\u003c\u003e?"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"string","long":"this is a relatively long sentence with ʎzɐɹɔ cha\rac\ters i\n it \u0001 \"\u003c\u003c\u0026\u0026\u003e\u003e\""}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"time.Time","party":"1999-01-01T00:00:00Z"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"time.Time","future":"2038-07-13T02:55:13Z"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"time.Time (nano)","party":"1999-01-01T00:00:00Z"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"time.Time (nano)","future":"2038-07-13T02:55:13.012398456Z"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"time.Time (unix)","party":915148800}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"time.Time (unix)","future":2162602513}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"time.Time (unix,nano)","party":915148800000000000}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"time.Time (unix,nano)","future":2162602513012398456}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"uint","zero":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"uint","one":1}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"uint8","max":255}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"uint8","min":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"uint16","max":65535}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"uint16","min":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"uint32","max":4294967295}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"uint32","min":0}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"uint64","max":18446744073709551615}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"uint64","min":0}

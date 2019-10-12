@@ -90,10 +90,19 @@ func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, msg strin
 	}
 	for i, f := range fields {
 		if i != 0 {
-			out = append(out, ", ")
+			out = append(out, " ")
 		}
-		k, v := f.Field()
-		out = append(out, fmt.Sprintf("%s=%s", k, v))
+		field := f.Field()
+		v := field.Value
+		if field.IsJSONString {
+			if !field.IsJSONSafe {
+				v = escapeStringForTerminal(v)
+			}
+			if len(v) == 0 || strings.ContainsAny(v, " \\") {
+				v = "\"" + v + "\""
+			}
+		}
+		out = append(out, fmt.Sprintf("%s=%s", field.Name, v))
 	}
 
 	if useAnsi && useColor {
@@ -122,8 +131,16 @@ func (p *JSONPrinter) Render(useAnsi bool, useColor bool, level Level, msg strin
 	)
 
 	for _, f := range fields {
-		k, v := f.Field()
-		out += fmt.Sprintf(`,"%s":%s`, k, v)
+		field := f.Field()
+		if field.IsJSONString {
+			if field.IsJSONSafe {
+				out += fmt.Sprintf(`,"%s":"%s"`, field.Name, field.Value)
+			} else {
+				out += fmt.Sprintf(`,"%s":"%s"`, field.Name, escapeStringForJSON(field.Value))
+			}
+		} else {
+			out += fmt.Sprintf(`,"%s":%s`, field.Name, field.Value)
+		}
 	}
 
 	out += "}"

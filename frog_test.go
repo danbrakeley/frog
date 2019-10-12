@@ -2,7 +2,9 @@ package frog
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -39,6 +41,7 @@ func Test_Golden(t *testing.T) {
 		{"trims-newlines", newlineVariations, &TextPrinter{PrintTime: false, PrintLevel: true}},
 		{"fixed-lines-movement", moveBetweenFixedLines, &TextPrinter{PrintTime: false, PrintLevel: true}},
 		{"fixed-lines-add-remove", addAndRemoveFixedLines, &TextPrinter{PrintTime: false, PrintLevel: true}},
+		{"fields", fields, &TextPrinter{PrintTime: false, PrintLevel: true}},
 	}
 
 	for _, tc := range cases {
@@ -75,6 +78,24 @@ func Test_Golden(t *testing.T) {
 			tc.DoWork(l)
 			l.Close()
 			AssertGolden(t, tc.Name+".json", buf.Bytes())
+
+			// parse each line as a JSON object to ensure only valid JSON is produced
+			lastLineWasEmpty := false
+			for i, line := range strings.Split(string(buf.Bytes()), "\n") {
+				if lastLineWasEmpty {
+					// the only empty lines should be the last line
+					t.Errorf("empty line in json output at line %d", i)
+				}
+				if len(strings.TrimSpace(line)) == 0 {
+					lastLineWasEmpty = true
+					continue
+				}
+				target := make(map[string]interface{})
+				err := json.Unmarshal([]byte(line), &target)
+				if err != nil {
+					t.Errorf("error parsing logged json: %v\n\n%s\n\n", err, line)
+				}
+			}
 		})
 
 		// run against a TeeLogger, with Buffered as Primary and Unbuffered as Secondary
@@ -172,6 +193,98 @@ func addAndRemoveFixedLines(l Logger) {
 	// without first removing all fixed lines.
 }
 
+func fields(l Logger) {
+	// bool
+	l.Info("bool", Bool("true", true))
+	l.Warning("bool", Bool("false", false))
+
+	// byte
+	l.Info("byte", Byte("min", byte(0)))
+	l.Warning("byte", Byte("max", byte(255)))
+
+	// dur/duration
+	l.Info("time.Duration", Dur("how_long", time.Duration(125)*time.Second))
+	d, _ := time.ParseDuration("4h48m1s")
+	l.Warning("time.Duration", Duration("this_long", d))
+
+	// err
+	l.Error("error", Err(fmt.Errorf("this is the error")))
+	l.Warning("error", Err(nil))
+
+	// float32
+	l.Info("float32", Float32("floatymc", float32(3.3333433)))
+	l.Warning("float32", Float32("floatface", float32(-0.000000000000002)))
+
+	// float64
+	l.Info("float64", Float64("flargen", float64(0)))
+	l.Warning("float64", Float64("blargen", float64(-1.234456e+78)))
+
+	// int
+	l.Info("int", Int("zero", int(0)))
+	l.Warning("int", Int("negative", int(-1)))
+
+	// int8
+	l.Info("int8", Int8("max", int8(127)))
+	l.Warning("int8", Int8("min", int8(-128)))
+
+	// int16
+	l.Info("int16", Int16("max", int16(32767)))
+	l.Warning("int16", Int16("min", int16(-32768)))
+
+	// int32
+	l.Info("int32", Int32("max", int32(2147483647)))
+	l.Warning("int32", Int32("min", int32(-2147483648)))
+
+	// int64
+	l.Info("int64", Int64("max", int64(9223372036854775807)))
+	l.Warning("int64", Int64("min", int64(-9223372036854775808)))
+
+	// string
+	l.Info("string", String("empty", ""))
+	l.Info("string", String("space", " "))
+	l.Info("string", String("quotes", "\""))
+	l.Info("string", String("newline", "\n"))
+	l.Info("string", String("newline", "a"))
+	l.Info("string", String("punctuation", "!@#$%^&*()_+-=[]{}|;':,.<>?"))
+	l.Warning("string", String("long", "this is a relatively long sentence with ʎzɐɹɔ cha\rac\ters i\n it \u0001 \"<<&&>>\""))
+
+	// time
+	l.Info("time.Time", Time("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
+	l.Warning("time.Time", Time("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+
+	// timenano
+	l.Info("time.Time (nano)", TimeNano("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
+	l.Warning("time.Time (nano)", TimeNano("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+
+	// timeunix
+	l.Info("time.Time (unix)", TimeUnix("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
+	l.Warning("time.Time (unix)", TimeUnix("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+
+	// timeunixnano
+	l.Info("time.Time (unix,nano)", TimeUnixNano("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
+	l.Warning("time.Time (unix,nano)", TimeUnixNano("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+
+	// uint
+	l.Info("uint", Uint("zero", uint(0)))
+	l.Warning("uint", Uint("one", uint(1)))
+
+	// uint8
+	l.Info("uint8", Uint8("max", uint8(255)))
+	l.Warning("uint8", Uint8("min", uint8(0)))
+
+	// uint16
+	l.Info("uint16", Uint16("max", uint16(65535)))
+	l.Warning("uint16", Uint16("min", uint16(0)))
+
+	// uint32
+	l.Info("uint32", Uint32("max", uint32(4294967295)))
+	l.Warning("uint32", Uint32("min", uint32(0)))
+
+	// uint64
+	l.Info("uint64", Uint64("max", uint64(18446744073709551615)))
+	l.Warning("uint64", Uint64("min", uint64(0)))
+}
+
 func Test_FixedLine_Close(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
@@ -190,7 +303,6 @@ func Test_FixedLine_Close(t *testing.T) {
 	fl := AddFixedLine(log)
 	// FixedLine panics if you call close (you should only call the parent's close)
 	fl.Close()
-	log.Close()
 }
 
 func Test_AssertInterfaces(t *testing.T) {
@@ -198,7 +310,7 @@ func Test_AssertInterfaces(t *testing.T) {
 		t.Helper()
 		_, ok := log.(FixedLineAdder)
 		if !ok {
-			t.Errorf("TeeLogger is not a FixedLineAdder")
+			t.Errorf("logger is not a FixedLineAdder")
 		}
 	}
 
@@ -206,7 +318,7 @@ func Test_AssertInterfaces(t *testing.T) {
 		t.Helper()
 		_, ok := log.(FixedLineRemover)
 		if !ok {
-			t.Errorf("TeeLogger is not a FixedLineRemover")
+			t.Errorf("logger is not a FixedLineRemover")
 		}
 	}
 
