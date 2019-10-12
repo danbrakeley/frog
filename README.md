@@ -1,5 +1,16 @@
 # frog
 
+## Status
+
+category | summary | details
+--- | --- | ---
+Windows | `works great` | My primary development OS at the moment.
+Linux | `untested` | -
+macOS | `untested` | -
+API | `close to final` | As of v0.4.0, I feel like I'm done making big changes, so unless a big new use case comes in and upsets everything, it is probably safe to start using the API.
+Maturity | `young` | I'm the only user as far as I know, and I've only used it in a single project so far.
+Performance | `untested` | -
+
 ## Overview
 
 Frog is a package for logging output.
@@ -74,3 +85,5 @@ level | description
 - ✓ ~~structured logging~~
 - use colors to make difference betwen fields and msg more obvious
 - go doc pass
+- run it on other platforms
+- make some benchmarks, maybe do a pass on performance
