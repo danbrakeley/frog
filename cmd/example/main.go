@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"os"
 	"sync"
@@ -23,19 +24,21 @@ func main() {
 	log := frog.New(style)
 	defer log.Close()
 
-	log.Infof("Frog Example App")
-	log.Infof("Flags:")
-	log.Infof("  --verbose   : enable Verbose level logging")
-	log.Infof("  --json      : output structured JSON")
-	log.Infof("os.Args:")
-	log.Infof("  %v", os.Args)
+	log.Info("Frog Example App")
+	log.Info("  --verbose : enable Verbose level logging")
+	log.Info("  --json    : output structured JSON")
+	var fields []frog.Fielder
+	for i, v := range os.Args {
+		fields = append(fields, frog.String(fmt.Sprintf("arg%d", i), v))
+	}
+	log.Info("os.Args", fields...)
 
 	log.SetMinLevel(frog.Transient)
-	log.Transientf("transient line")
-	log.Verbosef("verbose line")
-	log.Infof("info line")
-	log.Warningf("warning line")
-	log.Errorf("error line")
+	log.Transient("transient line")
+	log.Verbose("verbose line")
+	log.Info("info line")
+	log.Warning("warning line")
+	log.Error("error line")
 
 	if *verbose {
 		log.SetMinLevel(frog.Verbose)
@@ -44,50 +47,50 @@ func main() {
 	}
 
 	threads := 5
-	log.Infof("Spawning %d threads...", threads)
+	log.Info("Spawning threads...", frog.Int("count", threads))
 	var wg sync.WaitGroup
 	wg.Add(threads)
 	for i := 0; i < threads; i++ {
 		n := i
 		fl := frog.AddFixedLine(log)
 		go func() {
-			fl.Verbosef("spawned thread %d", n)
+			fl.Verbose("thread spawned", frog.Int("thread", n))
 			runProcess(fl, n)
-			fl.Verbosef("closing thread %d", n)
+			fl.Verbose("thread closing", frog.Int("thread", n))
 			frog.RemoveFixedLine(fl)
 			wg.Done()
 		}()
 	}
 
 	time.Sleep(time.Second)
-	log.Infof("still running...")
+	log.Info("still running...")
 	time.Sleep(time.Duration(500) * time.Millisecond)
-	log.Infof("yup, still running...")
+	log.Info("yup, still running...")
 	time.Sleep(time.Duration(100) * time.Millisecond)
-	log.Warningf("something happened on the main thread")
+	log.Warning("something happened on the main thread")
 	time.Sleep(time.Duration(500) * time.Millisecond)
-	log.Infof("the main thread again")
+	log.Info("the main thread again")
 	time.Sleep(time.Duration(5000) * time.Millisecond)
-	log.Errorf("the main thread had an error?")
+	log.Error("the main thread had an error?")
 
 	wg.Wait()
-	log.Infof("done!")
+	log.Info("done!")
 }
 
 func runProcess(log frog.Logger, n int) {
-	log.Transientf(" + [%d] starting...", n)
+	log.Transient(" + starting...", frog.Int("thread", n))
 	time.Sleep(time.Duration(400*n) * time.Millisecond)
 	for j := 0; j <= 100; j++ {
 		if j == 90 {
-			log.Verbosef("thread %d transitioning from downloading to writing", n)
+			log.Verbose("transitioning from downloading to writing", frog.Int("thread", n))
 		} else if j == 100 {
-			log.Infof("thread %d finished downloading", n)
+			log.Info("finished downloading", frog.Int("thread", n))
 		}
-		log.Transientf(" + [%d] Status: %0d%%", n, j)
+		log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
 		time.Sleep(time.Duration(50-(10*n)+rand.Intn(50)) * time.Millisecond)
 
 		if j == 50 && rand.Intn(3) == 0 {
-			log.Warningf("thread %d encountered a problem at 50%%, retrying", n)
+			log.Warning("encountered a problem, retrying", frog.Int("thread", n), frog.Int("percent", 50))
 			time.Sleep(time.Duration(n+1) * time.Second)
 		}
 	}

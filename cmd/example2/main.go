@@ -20,7 +20,7 @@ func main() {
 	defer log.Close()
 
 	threads := 3
-	log.Infof("Spawning %d threads...", threads)
+	log.Info("Spawning threads...", frog.Int("count", threads))
 	var wg sync.WaitGroup
 	wg.Add(threads)
 	for i := 0; i < threads; i++ {
@@ -28,28 +28,28 @@ func main() {
 		fixed := frog.AddFixedLine(log)
 		go func() {
 			runProcess(fixed, n)
-			fixed.Infof("thread %d finished", n)
+			fixed.Info("thread finished", frog.Int("thread", n))
 			frog.RemoveFixedLine(fixed)
 			wg.Done()
 		}()
 	}
 
 	sleep(800)
-	log.Infof("main thread reporting in")
+	log.Info("main thread reporting in")
 	sleep(400)
-	log.Warningf("main thread warning")
+	log.Warning("main thread warning")
 	sleep(500)
-	log.Infof("main thread reporting in")
+	log.Info("main thread reporting in")
 	sleep(1000)
-	log.Infof("main thread reporting in")
+	log.Info("main thread reporting in")
 
 	wg.Wait()
-	log.Infof("done!")
+	log.Info("done!")
 }
 
 func runProcess(log frog.Logger, n int) {
 	for j := 0; j <= 100; j++ {
-		log.Transientf(" + [%d] Status: %0d%%", n, j)
+		log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
 		time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
 	}
 }

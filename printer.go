@@ -9,7 +9,7 @@ import (
 )
 
 type Printer interface {
-	Render(useAnsi bool, useColor bool, level Level, format string, a ...interface{}) string
+	Render(useAnsi bool, useColor bool, level Level, format string, fields ...Fielder) string
 }
 
 type TextPrinter struct {
@@ -27,11 +27,8 @@ func trimNewlines(str string) string {
 	return str
 }
 
-func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, format string, a ...interface{}) string {
-	format = trimNewlines(format)
-
-	// and replace any newlines that remain
-	format = strings.ReplaceAll(format, "\n", "¶")
+func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, msg string, fields ...Fielder) string {
+	msg = escapeStringForTerminal(trimNewlines(msg))
 
 	var out []string
 
@@ -79,7 +76,25 @@ func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, format st
 		out = append(out, str)
 	}
 
-	out = append(out, fmt.Sprintf(format, a...))
+	out = append(out, msg)
+
+	lenSoFar := 0
+	for _, s := range out {
+		lenSoFar += len(s)
+	}
+	if len(fields) > 0 {
+		const tabWidth = 5
+		const minSpace = 3
+		start := (((lenSoFar + tabWidth - minSpace) / tabWidth) + 1) * tabWidth
+		out = append(out, strings.Repeat(" ", start-lenSoFar))
+	}
+	for i, f := range fields {
+		if i != 0 {
+			out = append(out, ", ")
+		}
+		k, v := f.Field()
+		out = append(out, fmt.Sprintf("%s=%s", k, v))
+	}
 
 	if useAnsi && useColor {
 		out = append(out, ansi.CSI+ansi.Reset+"m")
@@ -92,7 +107,7 @@ type JSONPrinter struct {
 	TimeOverride time.Time
 }
 
-func (p *JSONPrinter) Render(useAnsi bool, useColor bool, level Level, format string, a ...interface{}) string {
+func (p *JSONPrinter) Render(useAnsi bool, useColor bool, level Level, msg string, fields ...Fielder) string {
 	var stamp time.Time
 	if !p.TimeOverride.IsZero() {
 		stamp = p.TimeOverride
@@ -100,11 +115,42 @@ func (p *JSONPrinter) Render(useAnsi bool, useColor bool, level Level, format st
 		stamp = time.Now()
 	}
 
-	return fmt.Sprintf(`{"timestamp":"%s","level":"%s","msg":"%s"}`,
+	out := fmt.Sprintf(`{"timestamp":"%s","level":"%s","msg":"%s"`,
 		stamp.Format(time.RFC3339),
 		level.String(),
-		escapeStringForJSON(fmt.Sprintf(trimNewlines(format), a...)),
+		escapeStringForJSON(trimNewlines(msg)),
 	)
+
+	for _, f := range fields {
+		k, v := f.Field()
+		out += fmt.Sprintf(`,"%s":%s`, k, v)
+	}
+
+	out += "}"
+	return out
+}
+
+func escapeStringForTerminal(s string) string {
+	sb := strings.Builder{}
+	sb.Grow(len(s) * 2) // worst case
+	for _, r := range s {
+		switch r {
+		case '\t': // TAB
+			sb.WriteString(`\t`)
+		case '\n': // LF
+			sb.WriteString(`\n`)
+		case '\r': // CR
+			sb.WriteString(`\r`)
+		case '"': // 0x22
+			sb.WriteString(`\"`)
+		case '\\': // 0x5c
+			sb.WriteString(`\\`)
+		default:
+			// the rest can represent themselves safely
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
 }
 
 func escapeStringForJSON(s string) string {

@@ -63,7 +63,7 @@ func (l *Buffered) Close() {
 		return
 	}
 
-	l.Verbosef("buffered log closing")
+	l.Verbose("buffered log closing")
 	close(l.ch)
 	l.wg.Wait()
 }
@@ -209,20 +209,20 @@ func (l *Buffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Buffered) Logf(level Level, format string, a ...interface{}) Logger {
+func (l *Buffered) Log(level Level, format string, fields ...Fielder) Logger {
 	if level < l.minLevel {
 		return l
 	}
-	l.logImpl(l.prn, 0, level, format, a...)
+	l.logImpl(l.prn, 0, level, format, fields...)
 	return l
 }
 
 // logImpl is only called if the line will be shown, regardless of level, line, etc
-func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format string, a ...interface{}) {
+func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format string, fields ...Fielder) {
 	l.ch <- bufmsg{
 		Line:  fixedLine,
 		Level: level,
-		Msg:   prn.Render(l.cfg.UseAnsi, l.cfg.UseColor, level, format, a...),
+		Msg:   prn.Render(l.cfg.UseAnsi, l.cfg.UseColor, level, format, fields...),
 	}
 	if level == Fatal {
 		// we can't just close this channel, because another thread may still be trying to write to it
@@ -232,31 +232,31 @@ func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format str
 	}
 }
 
-func (l *Buffered) Transientf(format string, a ...interface{}) Logger {
-	l.Logf(Transient, format, a...)
+func (l *Buffered) Transient(format string, a ...Fielder) Logger {
+	l.Log(Transient, format, a...)
 	return l
 }
 
-func (l *Buffered) Verbosef(format string, a ...interface{}) Logger {
-	l.Logf(Verbose, format, a...)
+func (l *Buffered) Verbose(format string, a ...Fielder) Logger {
+	l.Log(Verbose, format, a...)
 	return l
 }
 
-func (l *Buffered) Infof(format string, a ...interface{}) Logger {
-	l.Logf(Info, format, a...)
+func (l *Buffered) Info(format string, a ...Fielder) Logger {
+	l.Log(Info, format, a...)
 	return l
 }
 
-func (l *Buffered) Warningf(format string, a ...interface{}) Logger {
-	l.Logf(Warning, format, a...)
+func (l *Buffered) Warning(format string, a ...Fielder) Logger {
+	l.Log(Warning, format, a...)
 	return l
 }
 
-func (l *Buffered) Errorf(format string, a ...interface{}) Logger {
-	l.Logf(Error, format, a...)
+func (l *Buffered) Error(format string, a ...Fielder) Logger {
+	l.Log(Error, format, a...)
 	return l
 }
 
-func (l *Buffered) Fatalf(format string, a ...interface{}) {
-	l.Logf(Fatal, format, a...)
+func (l *Buffered) Fatal(format string, a ...Fielder) {
+	l.Log(Fatal, format, a...)
 }

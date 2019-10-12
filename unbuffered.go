@@ -28,43 +28,42 @@ func (l *Unbuffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Unbuffered) Logf(level Level, format string, a ...interface{}) Logger {
+func (l *Unbuffered) Log(level Level, msg string, fields ...Fielder) Logger {
 	if level < l.minLevel {
 		return l
 	}
-	msg := l.prn.Render(false, false, level, format, a...)
-	fmt.Fprintf(l.w, "%s\n", msg)
+	fmt.Fprintf(l.w, "%s\n", l.prn.Render(false, false, level, msg, fields...))
 	if level == Fatal {
 		os.Exit(-1)
 	}
 	return l
 }
 
-func (l *Unbuffered) Transientf(format string, a ...interface{}) Logger {
-	l.Logf(Transient, format, a...)
+func (l *Unbuffered) Transient(msg string, fields ...Fielder) Logger {
+	l.Log(Transient, msg, fields...)
 	return l
 }
 
-func (l *Unbuffered) Verbosef(format string, a ...interface{}) Logger {
-	l.Logf(Verbose, format, a...)
+func (l *Unbuffered) Verbose(msg string, fields ...Fielder) Logger {
+	l.Log(Verbose, msg, fields...)
 	return l
 }
 
-func (l *Unbuffered) Infof(format string, a ...interface{}) Logger {
-	l.Logf(Info, format, a...)
+func (l *Unbuffered) Info(msg string, fields ...Fielder) Logger {
+	l.Log(Info, msg, fields...)
 	return l
 }
 
-func (l *Unbuffered) Warningf(format string, a ...interface{}) Logger {
-	l.Logf(Warning, format, a...)
+func (l *Unbuffered) Warning(msg string, fields ...Fielder) Logger {
+	l.Log(Warning, msg, fields...)
 	return l
 }
 
-func (l *Unbuffered) Errorf(format string, a ...interface{}) Logger {
-	l.Logf(Error, format, a...)
+func (l *Unbuffered) Error(msg string, fields ...Fielder) Logger {
+	l.Log(Error, msg, fields...)
 	return l
 }
 
-func (l *Unbuffered) Fatalf(format string, a ...interface{}) {
-	l.Logf(Fatal, format, a...)
+func (l *Unbuffered) Fatal(msg string, fields ...Fielder) {
+	l.Log(Fatal, msg, fields...)
 }

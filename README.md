@@ -29,15 +29,15 @@ The quickest way to get started is to create one of the default `Logger`s via a 
   log := frog.New(frog.Auto)
   defer log.Close()
 
-  log.Infof("Example log line")
-  log.Warningf("Example warning")
+  log.Info("Example log line")
+  log.Warning("Example warning")
 
   status := frog.AddFixedLine(log)
   for i := 0; i <= 100; i++ {
-    status.Transientf(" + %d%% complete", n)
+    status.Transient(" + complete", frog.Int("percent", n))
     time.Sleep(time.Duration(10) * time.Millisecond)
   }
-  status.Infof("Done", n)
+  status.Info("Done", n)
 ```
 
 `frog.Auto` will use a Buffered Logger, but will only use ANSI if there's a detected terminal, and only displays color if ANSI is supported and if there's no `NO_COLOR` environment variable.
@@ -71,5 +71,6 @@ level | description
 - ✓ ~~Write to two Loggers simultaneously~~
 - ✓ ~~JSON Printer~~
 - ✓ ~~rework how fixed lines are released~~
-- Structured logging
-- hide cursor while it moves around during fixed line redraws
+- ✓ ~~structured logging~~
+- use colors to make difference betwen fields and msg more obvious
+- go doc pass

@@ -29,37 +29,37 @@ func (l *TeeLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *TeeLogger) Logf(level Level, format string, a ...interface{}) Logger {
-	l.Primary.Logf(level, format, a...)
-	l.Secondary.Logf(level, format, a...)
+func (l *TeeLogger) Log(level Level, msg string, fields ...Fielder) Logger {
+	l.Primary.Log(level, msg, fields...)
+	l.Secondary.Log(level, msg, fields...)
 	return l
 }
 
-func (l *TeeLogger) Transientf(format string, a ...interface{}) Logger {
-	l.Logf(Transient, format, a...)
+func (l *TeeLogger) Transient(msg string, fields ...Fielder) Logger {
+	l.Log(Transient, msg, fields...)
 	return l
 }
 
-func (l *TeeLogger) Verbosef(format string, a ...interface{}) Logger {
-	l.Logf(Verbose, format, a...)
+func (l *TeeLogger) Verbose(msg string, fields ...Fielder) Logger {
+	l.Log(Verbose, msg, fields...)
 	return l
 }
 
-func (l *TeeLogger) Infof(format string, a ...interface{}) Logger {
-	l.Logf(Info, format, a...)
+func (l *TeeLogger) Info(msg string, fields ...Fielder) Logger {
+	l.Log(Info, msg, fields...)
 	return l
 }
 
-func (l *TeeLogger) Warningf(format string, a ...interface{}) Logger {
-	l.Logf(Warning, format, a...)
+func (l *TeeLogger) Warning(msg string, fields ...Fielder) Logger {
+	l.Log(Warning, msg, fields...)
 	return l
 }
 
-func (l *TeeLogger) Errorf(format string, a ...interface{}) Logger {
-	l.Logf(Error, format, a...)
+func (l *TeeLogger) Error(msg string, fields ...Fielder) Logger {
+	l.Log(Error, msg, fields...)
 	return l
 }
 
-func (l *TeeLogger) Fatalf(format string, a ...interface{}) {
-	l.Logf(Fatal, format, a...)
+func (l *TeeLogger) Fatal(msg string, fields ...Fielder) {
+	l.Log(Fatal, msg, fields...)
 }

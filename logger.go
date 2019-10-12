@@ -8,17 +8,17 @@ type Logger interface {
 	// SetMinLevel sets the lowest Level that will be logged.
 	SetMinLevel(level Level) Logger
 
-	// Logf is how log lines are added.
-	Logf(level Level, format string, a ...interface{}) Logger
+	// Log is how all log lines are added.
+	Log(level Level, format string, a ...Fielder) Logger
 
-	// Transientf et al are just shortcuts for calling Logf with specific levels
-	// Note that Fatalf doesn't return itself like the others do because it isn't expected to return at all.
-	Transientf(format string, a ...interface{}) Logger
-	Verbosef(format string, a ...interface{}) Logger
-	Infof(format string, a ...interface{}) Logger
-	Warningf(format string, a ...interface{}) Logger
-	Errorf(format string, a ...interface{}) Logger
-	Fatalf(format string, a ...interface{})
+	// Transient et al are just shortcuts for calling Log with specific levels.
+	// Note that Fatal will never return, as it flushes any buffers then calls os.Exit(-1).
+	Transient(format string, a ...Fielder) Logger
+	Verbose(format string, a ...Fielder) Logger
+	Info(format string, a ...Fielder) Logger
+	Warning(format string, a ...Fielder) Logger
+	Error(format string, a ...Fielder) Logger
+	Fatal(format string, a ...Fielder)
 }
 
 // ChildLogger is the interface for loggers that feed back to a parent.

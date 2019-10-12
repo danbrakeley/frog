@@ -54,47 +54,47 @@ func (l *FixedLine) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *FixedLine) Logf(level Level, format string, a ...interface{}) Logger {
+func (l *FixedLine) Log(level Level, msg string, fields ...Fielder) Logger {
 	l.mutex.RLock()
 	isClosed := l.fnOnClose == nil
 	l.mutex.RUnlock()
 
 	// most of the time, we want to our default parent behavior
 	if isClosed || !l.parent.cfg.UseAnsi || level != Transient {
-		l.parent.Logf(level, format, a...)
+		l.parent.Log(level, msg, fields...)
 		return l
 	}
 
 	// if we really do have a fixed line we want to print, then go straight to the source
-	l.parent.logImpl(l.prn, l.line, level, format, a...)
+	l.parent.logImpl(l.prn, l.line, level, msg, fields...)
 	return l
 }
 
-func (l *FixedLine) Transientf(format string, a ...interface{}) Logger {
-	l.Logf(Transient, format, a...)
+func (l *FixedLine) Transient(msg string, fields ...Fielder) Logger {
+	l.Log(Transient, msg, fields...)
 	return l
 }
 
-func (l *FixedLine) Verbosef(format string, a ...interface{}) Logger {
-	l.Logf(Verbose, format, a...)
+func (l *FixedLine) Verbose(msg string, fields ...Fielder) Logger {
+	l.Log(Verbose, msg, fields...)
 	return l
 }
 
-func (l *FixedLine) Infof(format string, a ...interface{}) Logger {
-	l.Logf(Info, format, a...)
+func (l *FixedLine) Info(msg string, fields ...Fielder) Logger {
+	l.Log(Info, msg, fields...)
 	return l
 }
 
-func (l *FixedLine) Warningf(format string, a ...interface{}) Logger {
-	l.Logf(Warning, format, a...)
+func (l *FixedLine) Warning(msg string, fields ...Fielder) Logger {
+	l.Log(Warning, msg, fields...)
 	return l
 }
 
-func (l *FixedLine) Errorf(format string, a ...interface{}) Logger {
-	l.Logf(Error, format, a...)
+func (l *FixedLine) Error(msg string, fields ...Fielder) Logger {
+	l.Log(Error, msg, fields...)
 	return l
 }
 
-func (l *FixedLine) Fatalf(format string, a ...interface{}) {
-	l.Logf(Fatal, format, a...)
+func (l *FixedLine) Fatal(msg string, fields ...Fielder) {
+	l.Log(Fatal, msg, fields...)
 }
