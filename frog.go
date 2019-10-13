@@ -1,6 +1,7 @@
 package frog
 
 import (
+	"io"
 	"os"
 
 	"github.com/mattn/go-isatty"
@@ -21,6 +22,16 @@ const (
 	JSON
 )
 
+// HasTerminal returns true if the passed writer is connected to a terminal
+func HasTerminal(w io.Writer) bool {
+	f, ok := w.(*os.File)
+	if !ok {
+		return false
+	}
+	fd := f.Fd()
+	return isatty.IsTerminal(fd) || isatty.IsCygwinTerminal(fd)
+}
+
 // New creates a Buffered logger that writes to os.Stdout, and autodetects
 // any attached Terminal on stdout to decide if ANSI should be used.
 // The caller is responsible for calling Close() before the process ends.
@@ -29,7 +40,7 @@ func New(t NewLogger) Logger {
 	case Auto:
 		cfg := Config{
 			Writer:   os.Stdout,
-			UseAnsi:  isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()),
+			UseAnsi:  HasTerminal(os.Stdout),
 			UseColor: !isNoColorSet,
 		}
 		prn := &TextPrinter{
