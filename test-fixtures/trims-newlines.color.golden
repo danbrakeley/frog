@@ -1,0 +1,14 @@
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] most of these lines will end up the same[0m
+[37m[nfo] except\nthese last couple of lines, which have newline breaks[0m
+[37m[nfo] except these\nlast couple of lines, which\nhave newline breaks[0m
+[37m[nfo] except these last\ncouple of lines,\n\nwhich have newline breaks[0m
+[37m[nfo] except these last couple\n\nof lines, which have newline breaks[0m
+[37m[nfo] except these last couple of lines, which\nhave\nnewline breaks[0m
+[37m[nfo] except these last couple\nof lines, which have\n\n\nnewline breaks[0m

@@ -46,6 +46,9 @@ func NewBuffered(cfg Config, prn Printer) *Buffered {
 	}
 
 	l.wg.Add(1)
+	if l.cfg.Writer == nil {
+		return nil
+	}
 	go func() {
 		l.processor()
 		l.wg.Done()
@@ -105,14 +108,6 @@ func (l *Buffered) processor() {
 		msg, ok := <-l.ch
 		if !ok || msg.Type == mtFatal {
 			return
-		}
-
-		// if we can't use ansi, then just write the line, and ignore fixed line messages
-		if !l.cfg.UseAnsi {
-			if msg.Type == mtPrint {
-				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
-			}
-			continue
 		}
 
 		switch msg.Type {
@@ -222,7 +217,7 @@ func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format str
 	l.ch <- bufmsg{
 		Line:  fixedLine,
 		Level: level,
-		Msg:   prn.Render(l.cfg.UseAnsi, l.cfg.UseColor, level, format, fields...),
+		Msg:   prn.Render(l.cfg.UseColor, level, format, fields...),
 	}
 	if level == Fatal {
 		// we can't just close this channel, because another thread may still be trying to write to it

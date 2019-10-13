@@ -5,15 +5,9 @@ import (
 	"sync"
 )
 
-// FixedLine is a Logger that attempts to overwrite the same line in the terminal,
-// allowing progress bars and other simple UI for the human to consume.
-//
-// If the Printer's CanUseAnsi is false, then it simply redirects to the normal
-// behavior of the parent Buffered Logger.
-//
-// If the Printer's CanUseAnsi is true, then the Transient level is always
-// printed, regardless of the MinLevel. This allows progress bars that do
-// not pollute logs with garbage when not connected to a terminal.
+// FixedLine is a Logger that treats Transient level log data in a special way:
+// - Transient level is never ignored, and always overwrites the same output line.
+// - Non-Transient level is sent to the parent logger.
 type FixedLine struct {
 	parent *Buffered
 	prn    Printer
@@ -59,8 +53,8 @@ func (l *FixedLine) Log(level Level, msg string, fields ...Fielder) Logger {
 	isClosed := l.fnOnClose == nil
 	l.mutex.RUnlock()
 
-	// most of the time, we want to our default parent behavior
-	if isClosed || !l.parent.cfg.UseAnsi || level != Transient {
+	// the parent can handle non-Transient lines
+	if isClosed || level != Transient {
 		l.parent.Log(level, msg, fields...)
 		return l
 	}

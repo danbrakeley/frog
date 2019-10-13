@@ -32,15 +32,20 @@ func HasTerminal(w io.Writer) bool {
 	return isatty.IsTerminal(fd) || isatty.IsCygwinTerminal(fd)
 }
 
-// New creates a Buffered logger that writes to os.Stdout, and autodetects
-// any attached Terminal on stdout to decide if ANSI should be used.
-// The caller is responsible for calling Close() before the process ends.
+// New creates a Logger that writes to os.Stdout, depending on the NewLogger type passed to it:
+// - Auto - if terminal detected on stdout, then colors and fixed lines are supported
+// - Basic - fixed lines are not supported, but colors are, and output never needs flushing
+// - JSON - no colors or fixed lines, and each line is a valid JSON object
+// The caller is responsible for calling Close() when done with the returned Logger.
 func New(t NewLogger) Logger {
+	if t == Auto && !HasTerminal(os.Stdout) {
+		t = Basic
+	}
+
 	switch t {
 	case Auto:
 		cfg := Config{
 			Writer:   os.Stdout,
-			UseAnsi:  HasTerminal(os.Stdout),
 			UseColor: !isNoColorSet,
 		}
 		prn := &TextPrinter{
@@ -50,14 +55,18 @@ func New(t NewLogger) Logger {
 		return NewBuffered(cfg, prn)
 
 	case Basic:
+		cfg := Config{
+			Writer:   os.Stdout,
+			UseColor: !isNoColorSet,
+		}
 		prn := &TextPrinter{
 			PrintTime:  true,
 			PrintLevel: true,
 		}
-		return NewUnbuffered(os.Stdout, prn)
+		return NewUnbuffered(cfg, prn)
 
 	case JSON:
-		return NewUnbuffered(os.Stdout, &JSONPrinter{})
+		return NewUnbuffered(Config{Writer: os.Stdout, UseColor: false}, &JSONPrinter{})
 	}
 
 	return nil

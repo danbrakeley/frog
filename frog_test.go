@@ -44,37 +44,41 @@ func Test_Golden(t *testing.T) {
 		{"fields", fields, &TextPrinter{PrintTime: false, PrintLevel: true}},
 	}
 
+	modesBasic := []string{"color", "plain"}
+	modesAll := []string{}
+	for _, v := range modesBasic {
+		modesAll = append(modesAll, v+".fixedline")
+		modesAll = append(modesAll, v)
+	}
+
 	for _, tc := range cases {
-		modes := []string{"ansi-color", "ansi", "plain"}
-		// run against a Buffered Logger
-		for _, mode := range modes {
-			t.Run(tc.Name+"."+mode+".buffered", func(t *testing.T) {
+		for _, mode := range modesAll {
+			t.Run(tc.Name+"."+mode, func(t *testing.T) {
 				buf := &bytes.Buffer{}
 				cfg := Config{
 					Writer:   buf,
-					UseAnsi:  strings.HasPrefix(mode, "ansi"),
-					UseColor: strings.HasSuffix(mode, "color"),
+					UseColor: strings.HasPrefix(mode, "color"),
 				}
-				l := NewBuffered(cfg, tc.Printer)
-				tc.DoWork(l)
-				l.Close()
+				var log Logger
+				if strings.HasSuffix(mode, ".fixedline") {
+					log = NewBuffered(cfg, tc.Printer)
+				} else {
+					log = NewUnbuffered(cfg, tc.Printer)
+				}
+				tc.DoWork(log)
+				log.Close()
 				AssertGolden(t, tc.Name+"."+mode, buf.Bytes())
 			})
 		}
 
-		// run against an Unbuffered Logger
-		t.Run(tc.Name+".unbuffered", func(t *testing.T) {
-			buf := &bytes.Buffer{}
-			l := NewUnbuffered(buf, tc.Printer)
-			tc.DoWork(l)
-			l.Close()
-			AssertGolden(t, tc.Name+".plain", buf.Bytes())
-		})
-
 		// run against the JSON printer
 		t.Run(tc.Name+".json", func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			l := NewUnbuffered(buf, &JSONPrinter{TimeOverride: time.Date(2019, 9, 10, 21, 44, 00, 00, time.UTC)})
+			cfg := Config{
+				Writer:   buf,
+				UseColor: false,
+			}
+			l := NewUnbuffered(cfg, &JSONPrinter{TimeOverride: time.Date(2019, 9, 10, 21, 44, 00, 00, time.UTC)})
 			tc.DoWork(l)
 			l.Close()
 			AssertGolden(t, tc.Name+".json", buf.Bytes())
@@ -99,23 +103,19 @@ func Test_Golden(t *testing.T) {
 		})
 
 		// run against a TeeLogger, with Buffered as Primary and Unbuffered as Secondary
-		for _, mode := range modes {
+		for _, mode := range modesBasic {
 			t.Run(tc.Name+"."+mode+".tee", func(t *testing.T) {
+				useColor := strings.HasPrefix(mode, "color")
 				buf1 := &bytes.Buffer{}
-				cfg := Config{
-					Writer:   buf1,
-					UseAnsi:  strings.HasPrefix(mode, "ansi"),
-					UseColor: strings.HasSuffix(mode, "color"),
-				}
 				buf2 := &bytes.Buffer{}
 				tee := &TeeLogger{
-					Primary:   NewBuffered(cfg, tc.Printer),
-					Secondary: NewUnbuffered(buf2, tc.Printer),
+					Primary:   NewBuffered(Config{Writer: buf1, UseColor: useColor}, tc.Printer),
+					Secondary: NewUnbuffered(Config{Writer: buf2, UseColor: useColor}, tc.Printer),
 				}
 				tc.DoWork(tee)
 				tee.Close()
-				AssertGolden(t, tc.Name+"."+mode, buf1.Bytes())
-				AssertGolden(t, tc.Name+".plain", buf2.Bytes())
+				AssertGolden(t, tc.Name+"."+mode+".fixedline", buf1.Bytes())
+				AssertGolden(t, tc.Name+"."+mode, buf2.Bytes())
 			})
 		}
 	}
@@ -292,11 +292,10 @@ func Test_FixedLine_Close(t *testing.T) {
 		}
 	}()
 
-	// The following is the code under test
+	// The following code just needs to not panic in order to pass
 	buf := &bytes.Buffer{}
 	cfg := Config{
 		Writer:   buf,
-		UseAnsi:  true,
 		UseColor: false,
 	}
 	log := NewBuffered(cfg, &TextPrinter{})
@@ -322,7 +321,7 @@ func Test_AssertInterfaces(t *testing.T) {
 		}
 	}
 
-	bl := NewBuffered(Config{}, &TextPrinter{})
+	bl := NewBuffered(Config{Writer: &bytes.Buffer{}}, &TextPrinter{})
 	fnAssertAdder(t, bl)
 	blfl := AddFixedLine(bl)
 	fnAssertRemover(t, blfl)

@@ -9,7 +9,7 @@ import (
 )
 
 type Printer interface {
-	Render(useAnsi bool, useColor bool, level Level, format string, fields ...Fielder) string
+	Render(useColor bool, level Level, format string, fields ...Fielder) string
 }
 
 type TextPrinter struct {
@@ -27,12 +27,12 @@ func trimNewlines(str string) string {
 	return str
 }
 
-func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, msg string, fields ...Fielder) string {
+func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...Fielder) string {
 	msg = escapeStringForTerminal(trimNewlines(msg))
 
 	var out []string
 
-	if useAnsi && useColor {
+	if useColor {
 		var str string
 		switch level {
 		case Transient:
@@ -105,7 +105,7 @@ func (p *TextPrinter) Render(useAnsi bool, useColor bool, level Level, msg strin
 		out = append(out, fmt.Sprintf("%s=%s", field.Name, v))
 	}
 
-	if useAnsi && useColor {
+	if useColor {
 		out = append(out, ansi.CSI+ansi.Reset+"m")
 	}
 
@@ -116,7 +116,7 @@ type JSONPrinter struct {
 	TimeOverride time.Time
 }
 
-func (p *JSONPrinter) Render(useAnsi bool, useColor bool, level Level, msg string, fields ...Fielder) string {
+func (p *JSONPrinter) Render(useColor bool, level Level, msg string, fields ...Fielder) string {
 	var stamp time.Time
 	if !p.TimeOverride.IsZero() {
 		stamp = p.TimeOverride
