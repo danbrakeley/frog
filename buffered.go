@@ -3,6 +3,7 @@ package frog
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 	"sync/atomic"
 
@@ -66,7 +67,10 @@ func (l *Buffered) Close() {
 		return
 	}
 
-	l.Verbose("buffered log closing")
+	if l.minLevel <= Verbose {
+		_, file, line, ok := runtime.Caller(1)
+		l.Verbose("buffered log closing", String("file", file), Int("line", line), Bool("ok", ok))
+	}
 	close(l.ch)
 	l.wg.Wait()
 }
