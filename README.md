@@ -1,16 +1,5 @@
 # frog
 
-## Status
-
-category | summary | details
---- | --- | ---
-Windows | `works great` | My primary development OS at the moment.
-Linux | `untested` | -
-macOS | `untested` | -
-API | `close to final` | As of v0.4.0, I feel like I'm done making big changes, so unless a big new use case comes in and upsets everything, it is probably safe to start using the API.
-Maturity | `young` | I'm the only user as far as I know, and I've only used it in a single project so far.
-Performance | `untested` | -
-
 ## Overview
 
 Frog is a package for logging output.
@@ -34,7 +23,7 @@ Frog uses ANSI/VT-100 commands to change colors and move the cursor. For this to
 
 ## Usage
 
-The quickest way to get started is to create one of the default `Logger`s via a call to `New`:
+The quickest way to get started is to create one of the default `Logger`s via a call to `frog.New`:
 
 ```go
   log := frog.New(frog.Auto)
@@ -51,20 +40,11 @@ The quickest way to get started is to create one of the default `Logger`s via a 
   status.Info("Done", n)
 ```
 
-`frog.Auto` will use a Buffered Logger, but will only use ANSI if there's a detected terminal, and only displays color if ANSI is supported and if there's no `NO_COLOR` environment variable.
+The parameter `frog.Auto` tells `New` to autodetect if there's a terminal on stdout, and if so, to enable support for fixed lines and colors. There are other default styles you can pass to `New` as well, like `frog.Basic` and `frog.JSON`.
 
-The implementation of the `New` func shows a couple of different examlpes of how to create customized versions of the built-in Loggers, and is a good reference. See [frog.go](https://github.com/danbrakeley/frog/blob/master/frog.go#L20-L46).
+`frog.JSON` will output each log line as a single JSON object. This allows structured data to be easily consumed by a log parser that supports it (ie [filebeat](https://www.elastic.co/products/beats/filebeat)). A JSON logger created in this way doesn't support fixed lines, and by default will not output Transient level lines, but from the code's perspective, the API is identical, and calls to AddFixedLine and Transient continue to behave the same as before.
 
-Another value you can pass to `New` is `frog.JSON`, which uses an Unbuffered Logger that formats each log line as a single JSON object. Switching the previous code example is as simple as changing the first line:
-
-```go
-  log := frog.New(frog.JSON)
-  ⋮
-```
-
-Notice that when you run this second example, all the `Transient` level log lines are not output. `Transient` lines are by default only output when sent to a fixed line, and if called on a `Logger` that does not currently represent a fixed line, then those lines are dropped.
-
-Also notice that when we want to create a fixed line, we make a call on the `frog` package, and not directly to our `Logger`. Similarly, if you want to remove a fixed line, you call `frog.RemoveFixedLine` on the fixed line logger. Both calls are safe to call on `Loggers` that do not support fixed lines, and in that case will just return the passed `Logger`. The intent with this API is that you can write your code to always assume fixed line support, and it will just work when there isn't fixed line support present at runtime.
+You can also build a custom Logger, with its own custom line printing style, and using sources other than stdout. See the implementation of the `New` function in [frog.go](https://github.com/danbrakeley/frog/blob/master/frog.go#L40-L79) for examples.
 
 Here's a complete list of Frog's log levels, and their intended uses:
 

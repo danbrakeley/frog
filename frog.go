@@ -33,9 +33,9 @@ func HasTerminal(w io.Writer) bool {
 }
 
 // New creates a Logger that writes to os.Stdout, depending on the NewLogger type passed to it:
-// - Auto - if terminal detected on stdout, then colors and fixed lines are supported
-// - Basic - fixed lines are not supported, but colors are, and output never needs flushing
-// - JSON - no colors or fixed lines, and each line is a valid JSON object
+// - Auto - if terminal detected on stdout, then colors and fixed lines are supported (else, uses Basic)
+// - Basic - no colors or fixed lines, no buffering
+// - JSON - no colors or fixed lines, no buffering, and each line is a valid JSON object
 // The caller is responsible for calling Close() when done with the returned Logger.
 func New(t NewLogger) Logger {
 	if t == Auto && !HasTerminal(os.Stdout) {
@@ -44,29 +44,35 @@ func New(t NewLogger) Logger {
 
 	switch t {
 	case Auto:
-		cfg := Config{
-			Writer:   os.Stdout,
-			UseColor: !isNoColorSet,
-		}
-		prn := &TextPrinter{
-			PrintTime:  true,
-			PrintLevel: true,
-		}
-		return NewBuffered(cfg, prn)
-
+		return NewBuffered(
+			Config{
+				Writer:   os.Stdout,
+				UseColor: !isNoColorSet,
+			},
+			&TextPrinter{
+				PrintTime:  true,
+				PrintLevel: true,
+			},
+		)
 	case Basic:
-		cfg := Config{
-			Writer:   os.Stdout,
-			UseColor: !isNoColorSet,
-		}
-		prn := &TextPrinter{
-			PrintTime:  true,
-			PrintLevel: true,
-		}
-		return NewUnbuffered(cfg, prn)
-
+		return NewUnbuffered(
+			Config{
+				Writer:   os.Stdout,
+				UseColor: false,
+			},
+			&TextPrinter{
+				PrintTime:  true,
+				PrintLevel: true,
+			},
+		)
 	case JSON:
-		return NewUnbuffered(Config{Writer: os.Stdout, UseColor: false}, &JSONPrinter{})
+		return NewUnbuffered(
+			Config{
+				Writer:   os.Stdout,
+				UseColor: false,
+			},
+			&JSONPrinter{},
+		)
 	}
 
 	return nil
