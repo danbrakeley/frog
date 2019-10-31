@@ -63,6 +63,9 @@ level | description
 - ✓ ~~JSON Printer~~
 - ✓ ~~rework how fixed lines are released~~
 - ✓ ~~structured logging~~
+- ✓ ~~NullLogger for when you want to pass a frog.Logger that nops~~
+- TextLogger has min indent (greater than normal indent) for the first field
+- FilterLogger which can dynamically switch between logging and nopping
 - use colors to make difference betwen fields and msg more obvious
 - go doc pass
 - run it on other platforms
