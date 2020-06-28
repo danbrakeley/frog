@@ -1,23 +1,23 @@
-[37m[nfo] before adding fixed logger 1[0m
+[37m[nfo] [97mbefore adding fixed logger 1[0m
 
-[1F[90m[==>] first fixed line[0m[K[1E
-[2F[93m[WRN] main logger should still log properly[0m[K
-[90m[==>] first fixed line[0m[K
-[1F[90m[==>] first fixed line again[0m[K[1E[1F[K[37m[nfo] after removing fixed logger 1[0m
-[37m[nfo] before adding fixed logger 2[0m
+[1F[90m[==>] [32mfirst fixed line[0m[K[1E
+[2F[33m[WRN] [93mmain logger should still log properly[0m[K
+[90m[==>] [32mfirst fixed line[0m[K
+[1F[90m[==>] [32mfirst fixed line again[0m[K[1E[1F[K[37m[nfo] [97mafter removing fixed logger 1[0m
+[37m[nfo] [97mbefore adding fixed logger 2[0m
 
 
-[2F[37m[nfo] before adding fixed logger 3[0m[K
+[2F[37m[nfo] [97mbefore adding fixed logger 3[0m[K
 [K
 
-[2F[90m[==>] logger 2 status update A[0m[K[2E
-[3F[37m[nfo] regular log[0m[K
-[90m[==>] logger 2 status update A[0m[K
+[2F[90m[==>] [32mlogger 2 status update A[0m[K[2E
+[3F[37m[nfo] [97mregular log[0m[K
+[90m[==>] [32mlogger 2 status update A[0m[K
 [K
-[1F[90m[==>] logger 3 status update A[0m[K[1E
-[3F[37m[nfo] another regular log (via fl2)[0m[K
-[90m[==>] logger 2 status update A[0m[K
-[90m[==>] logger 3 status update A[0m[K
-[1F[90m[==>] logger 3 status update B[0m[K[1E[2F[90m[==>] logger 2 status update B[0m[K[2E[1F[K
-[2F[37m[nfo] this should be redirected to parent logger[0m[K
-[90m[==>] logger 2 status update B[0m[K
+[1F[90m[==>] [32mlogger 3 status update A[0m[K[1E
+[3F[37m[nfo] [97manother regular log (via fl2)[0m[K
+[90m[==>] [32mlogger 2 status update A[0m[K
+[90m[==>] [32mlogger 3 status update A[0m[K
+[1F[90m[==>] [32mlogger 3 status update B[0m[K[1E[2F[90m[==>] [32mlogger 2 status update B[0m[K[2E[1F[K
+[2F[37m[nfo] [97mthis should be redirected to parent logger[0m[K
+[90m[==>] [32mlogger 2 status update B[0m[K

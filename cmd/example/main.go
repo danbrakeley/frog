@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -12,7 +13,9 @@ import (
 )
 
 var verbose = flag.Bool("verbose", false, "drop min level from info to verbose")
-var json = flag.Bool("json", false, "drop min level from info to verbose")
+var json = flag.Bool("json", false, "output structured JSON")
+var noTime = flag.Bool("notime", false, "do not include timestamps (ignored if using -json)")
+var noLevel = flag.Bool("nolevel", false, "do not include level (ignored if using -json)")
 
 func main() {
 	flag.Parse()
@@ -21,15 +24,29 @@ func main() {
 	if *json {
 		style = frog.JSON
 	}
-	log := frog.New(style)
+
+	var opts []frog.Option
+	if *noTime {
+		opts = append(opts, frog.HideTimestamps)
+	}
+	if *noLevel {
+		opts = append(opts, frog.HideLevel)
+	}
+
+	log := frog.New(style, opts...)
 	defer log.Close()
 
 	log.Info("Frog Example App")
-	log.Info("  --verbose : enable Verbose level logging")
-	log.Info("  --json    : output structured JSON")
+	flag.VisitAll(func(f *flag.Flag) {
+		log.Info(fmt.Sprintf("  --%s :: %s", f.Name, f.Usage))
+	})
 	var fields []frog.Fielder
 	for i, v := range os.Args {
-		fields = append(fields, frog.String(fmt.Sprintf("arg%d", i), v))
+		arg := v
+		if i == 0 {
+			arg = filepath.Base(arg)
+		}
+		fields = append(fields, frog.String(fmt.Sprintf("arg%d", i), arg))
 	}
 	log.Info("os.Args", fields...)
 

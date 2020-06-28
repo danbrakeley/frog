@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/danbrakeley/frog/ansi"
 )
@@ -27,70 +28,98 @@ func trimNewlines(str string) string {
 	return str
 }
 
+func ansiLevelPrimary(level Level) string {
+	switch level {
+	case Transient:
+		return ansi.CSI + ansi.FgDarkGreen + "m"
+	case Verbose:
+		return ansi.CSI + ansi.FgCyan + "m"
+	case Info:
+		return ansi.CSI + ansi.FgWhite + "m"
+	case Warning:
+		return ansi.CSI + ansi.FgYellow + "m"
+	case Error, Fatal:
+		return ansi.CSI + ansi.FgRed + "m"
+	default:
+		return ansi.CSI + ansi.BgWhite + ";" + ansi.FgBlack + "m"
+	}
+}
+
+func ansiLevelSecondary(level Level) string {
+	switch level {
+	case Transient:
+		return ansi.CSI + ansi.FgDarkGray + "m"
+	case Verbose:
+		return ansi.CSI + ansi.FgDarkCyan + "m"
+	case Info:
+		return ansi.CSI + ansi.FgLightGray + "m"
+	case Warning:
+		return ansi.CSI + ansi.FgDarkYellow + "m"
+	case Error, Fatal:
+		return ansi.CSI + ansi.FgDarkRed + "m"
+	default:
+		return ansi.CSI + ansi.BgLightGray + ";" + ansi.FgBlack + "m"
+	}
+}
+
 func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...Fielder) string {
 	msg = escapeStringForTerminal(trimNewlines(msg))
 
-	var out []string
+	var sb strings.Builder
+	sb.Grow(256)
 
 	if useColor {
-		var str string
-		switch level {
-		case Transient:
-			str = ansi.CSI + ansi.FgDarkGray + "m"
-		case Verbose:
-			str = ansi.CSI + ansi.FgDarkCyan + "m"
-		case Info:
-			str = ansi.CSI + ansi.FgLightGray + "m"
-		case Warning:
-			str = ansi.CSI + ansi.FgYellow + "m"
-		case Error, Fatal:
-			str = ansi.CSI + ansi.FgRed + "m"
-		default:
-			str = ansi.CSI + ansi.BgWhite + ";" + ansi.FgBlack + "m"
-		}
-		out = append(out, str)
+		sb.WriteString(ansiLevelSecondary(level))
 	}
 
 	if p.PrintTime {
-		out = append(out, fmt.Sprintf("%s ", time.Now().Format("2006.01.02-15:04:05")))
+		sb.WriteString(fmt.Sprintf("%s ", time.Now().Format("2006.01.02-15:04:05")))
 	}
 
 	if p.PrintLevel {
-		var str string
 		switch level {
 		case Transient:
-			str = "[==>] "
+			sb.WriteString("[==>] ")
 		case Verbose:
-			str = "[dbg] "
+			sb.WriteString("[dbg] ")
 		case Info:
-			str = "[nfo] "
+			sb.WriteString("[nfo] ")
 		case Warning:
-			str = "[WRN] "
+			sb.WriteString("[WRN] ")
 		case Error:
-			str = "[ERR] "
+			sb.WriteString("[ERR] ")
 		case Fatal:
-			str = "[!!!] "
+			sb.WriteString("[!!!] ")
 		default:
-			str = "[???] "
+			sb.WriteString("[???] ")
 		}
-		out = append(out, str)
 	}
 
-	out = append(out, msg)
-
-	lenSoFar := 0
-	for _, s := range out {
-		lenSoFar += len(s)
+	if useColor {
+		sb.WriteString(ansiLevelPrimary(level))
 	}
+	sb.WriteString(msg)
+
 	if len(fields) > 0 {
-		const tabWidth = 5
+		visibleRuneCount := utf8.RuneCountInString(msg)
+
+		const minLen = 40
 		const minSpace = 3
-		start := (((lenSoFar + tabWidth - minSpace) / tabWidth) + 1) * tabWidth
-		out = append(out, strings.Repeat(" ", start-lenSoFar))
+		const tabWidth = 5
+
+		space := minSpace
+		if visibleRuneCount+space < minLen {
+			space = minLen - visibleRuneCount
+		}
+
+		offset := (((visibleRuneCount + space - 1) / tabWidth) + 1) * tabWidth
+		for i := 0; i < offset-visibleRuneCount; i++ {
+			sb.WriteByte(' ')
+		}
 	}
 	for i, f := range fields {
 		if i != 0 {
-			out = append(out, " ")
+			sb.WriteByte(' ')
 		}
 		field := f.Field()
 		v := field.Value
@@ -102,14 +131,23 @@ func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...F
 				v = "\"" + v + "\""
 			}
 		}
-		out = append(out, fmt.Sprintf("%s=%s", field.Name, v))
+
+		if useColor {
+			sb.WriteString(ansiLevelSecondary(level))
+		}
+		sb.WriteString(field.Name)
+		sb.WriteByte('=')
+		if useColor {
+			sb.WriteString(ansiLevelPrimary(level))
+		}
+		sb.WriteString(v)
 	}
 
 	if useColor {
-		out = append(out, ansi.CSI+ansi.Reset+"m")
+		sb.WriteString(ansi.CSI + ansi.Reset + "m")
 	}
 
-	return strings.Join(out, "")
+	return sb.String()
 }
 
 type JSONPrinter struct {
