@@ -16,6 +16,19 @@ type Printer interface {
 type TextPrinter struct {
 	PrintTime  bool
 	PrintLevel bool
+	// FieldIndent controls where the first field begins rendering, compared to the message.
+	// Note that the first field will always be at least 3 spaces from the end of the message,
+	// and always be aligned with an offset that is a multiple of 5
+	// For example:
+	//   [nfo] a long message that overflows the first field indent   fieldIndent=40
+	//   [nfo] short message                           fieldIndent=40
+	//   [nfo] short message                 fieldIndent=30
+	//   [nfo] short message       fieldIndent=20
+	//   [nfo] short message       fieldIndent=10
+	//   [nfo] short     fieldIndent=10
+	//   [nfo] short     fieldIndent=0
+	//   [nfo] sh   fieldIndent=0
+	FieldIndent int
 }
 
 func trimNewlines(str string) string {
@@ -103,7 +116,7 @@ func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...F
 	if len(fields) > 0 {
 		visibleRuneCount := utf8.RuneCountInString(msg)
 
-		const minLen = 40
+		minLen := p.FieldIndent
 		const minSpace = 3
 		const tabWidth = 5
 

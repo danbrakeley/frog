@@ -42,6 +42,11 @@ const (
 	ShowLevel
 	// HideLevel disables the inclusion of the log level with each log line. Note that JSON type always adds log level.
 	HideLevel
+	// Indent* sets the min field indentation (default is 20; see TextPrinter's FieldIndent)
+	FieldIndent10
+	FieldIndent20
+	FieldIndent30
+	FieldIndent40
 )
 
 // HasTerminal returns true if the passed writer is connected to a terminal
@@ -70,6 +75,7 @@ func New(t NewLogger, opts ...Option) Logger {
 	var showTime bool = true
 	var showLevel bool = true
 	var writer io.Writer = os.Stdout
+	var fieldIndent int = 20
 	for _, opt := range opts {
 		switch opt {
 		case UseStdout:
@@ -88,6 +94,14 @@ func New(t NewLogger, opts ...Option) Logger {
 			showLevel = true
 		case HideLevel:
 			showLevel = false
+		case FieldIndent10:
+			fieldIndent = 10
+		case FieldIndent20:
+			fieldIndent = 20
+		case FieldIndent30:
+			fieldIndent = 30
+		case FieldIndent40:
+			fieldIndent = 40
 		}
 	}
 
@@ -103,8 +117,9 @@ func New(t NewLogger, opts ...Option) Logger {
 				UseColor: useColor,
 			},
 			&TextPrinter{
-				PrintTime:  showTime,
-				PrintLevel: showLevel,
+				PrintTime:   showTime,
+				PrintLevel:  showLevel,
+				FieldIndent: fieldIndent,
 			},
 		)
 	case Basic:
@@ -114,8 +129,9 @@ func New(t NewLogger, opts ...Option) Logger {
 				UseColor: false,
 			},
 			&TextPrinter{
-				PrintTime:  showTime,
-				PrintLevel: showLevel,
+				PrintTime:   showTime,
+				PrintLevel:  showLevel,
+				FieldIndent: fieldIndent,
 			},
 		)
 	case JSON:

@@ -25,7 +25,7 @@ func main() {
 		style = frog.JSON
 	}
 
-	var opts []frog.Option
+	opts := []frog.Option{frog.FieldIndent40}
 	if *noTime {
 		opts = append(opts, frog.HideTimestamps)
 	}
