@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -17,9 +16,8 @@ var update = flag.Bool("update", false, "update golden files")
 
 func AssertGolden(t *testing.T, testName string, actual []byte) {
 	t.Helper()
-	golden := filepath.Join("test-fixtures", testName+".golden")
+	golden := filepath.Join("testdata", testName+".golden")
 	if *update {
-		os.Mkdir("test-fixtures", 0644)
 		ioutil.WriteFile(golden, actual, 0644)
 	}
 	expected, _ := ioutil.ReadFile(golden)
