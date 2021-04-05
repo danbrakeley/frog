@@ -18,7 +18,7 @@ func AssertGolden(t *testing.T, testName string, actual []byte) {
 	t.Helper()
 	golden := filepath.Join("testdata", testName+".golden")
 	if *update {
-		ioutil.WriteFile(golden, actual, 0644)
+		ioutil.WriteFile(golden, actual, 0644) //nolint:errcheck
 	}
 	expected, _ := ioutil.ReadFile(golden)
 	if !bytes.Equal(actual, expected) {
@@ -83,7 +83,7 @@ func Test_Golden(t *testing.T) {
 
 			// parse each line as a JSON object to ensure only valid JSON is produced
 			lastLineWasEmpty := false
-			for i, line := range strings.Split(string(buf.Bytes()), "\n") {
+			for i, line := range strings.Split(buf.String(), "\n") {
 				if lastLineWasEmpty {
 					// the only empty lines should be the last line
 					t.Errorf("empty line in json output at line %d", i)
