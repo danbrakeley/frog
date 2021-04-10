@@ -25,11 +25,11 @@ func main() {
 	wg.Add(threads)
 	for i := 0; i < threads; i++ {
 		n := i
-		fixed := frog.AddFixedLine(log)
+		anchored := frog.AddAnchor(log)
 		go func() {
-			runProcess(fixed, n)
-			fixed.Info("thread finished", frog.Int("thread", n))
-			frog.RemoveFixedLine(fixed)
+			runProcess(anchored, n)
+			anchored.Info("thread finished", frog.Int("thread", n))
+			frog.RemoveAnchor(anchored)
 			wg.Done()
 		}()
 	}

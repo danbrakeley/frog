@@ -17,8 +17,8 @@ type Buffered struct {
 	ch       chan bufmsg
 	wg       sync.WaitGroup
 
-	isClosed       int32 // to keep thread safe, use atomic reads/writes/math
-	openFixedLines int32 // to keep thread safe, use atomic reads/writes/math
+	isClosed    int32 // to keep thread safe, use atomic reads/writes/math
+	openAnchors int32 // to keep thread safe, use atomic reads/writes/math
 }
 
 type msgType byte
@@ -26,8 +26,8 @@ type msgType byte
 const (
 	mtPrint      msgType = iota // string to print
 	mtFatal                     // stop processor without closing channel
-	mtAddLine                   // add a fixed line
-	mtRemoveLine                // remove a fixed line
+	mtAddLine                   // add an anchored line
+	mtRemoveLine                // remove an acnhored line
 )
 
 type bufmsg struct {
@@ -75,28 +75,30 @@ func (l *Buffered) Close() {
 	l.wg.Wait()
 }
 
-// AddFixedLine creates a Logger that, when connected to a terminal, draws over itself.
+// AddAnchor creates a Logger that is "achored" to the bottom of the output.
+// This "anchoring" is achieved by using ANSI to re-draw the anchored line at
+// the bottom as the output scrolls up.
 // Thread safe.
-func (l *Buffered) AddFixedLine() Logger {
-	lineNum := atomic.AddInt32(&l.openFixedLines, 1)
+func (l *Buffered) AddAnchor() Logger {
+	lineNum := atomic.AddInt32(&l.openAnchors, 1)
 	l.ch <- bufmsg{Type: mtAddLine, Line: lineNum}
 	onClose := func() {
-		atomic.AddInt32(&l.openFixedLines, -1)
+		atomic.AddInt32(&l.openAnchors, -1)
 		l.ch <- bufmsg{Type: mtRemoveLine, Line: lineNum}
 	}
-	return newFixedLine(l, lineNum, onClose)
+	return newAnchor(l, lineNum, onClose)
 }
 
 func (l *Buffered) processor() {
-	type fixedLine struct {
+	type anchoredLine struct {
 		lineNum int32
 		str     string
 	}
-	var fixedLines []fixedLine
+	var anchoredLines []anchoredLine
 
 	fnMustFindIdx := func(line int32) int {
 		idx := -1
-		for i, v := range fixedLines {
+		for i, v := range anchoredLines {
 			if line == v.lineNum {
 				idx = i
 				break
@@ -121,7 +123,7 @@ func (l *Buffered) processor() {
 
 			// figure out where this new line goes
 			idx := 0
-			for _, v := range fixedLines {
+			for _, v := range anchoredLines {
 				if msg.Line < v.lineNum {
 					break
 				}
@@ -129,15 +131,15 @@ func (l *Buffered) processor() {
 			}
 
 			// and then insert it there
-			fixedLines = append(fixedLines, fixedLine{})
-			copy(fixedLines[idx+1:], fixedLines[idx:])
-			fixedLines[idx] = fixedLine{lineNum: msg.Line}
+			anchoredLines = append(anchoredLines, anchoredLine{})
+			copy(anchoredLines[idx+1:], anchoredLines[idx:])
+			anchoredLines[idx] = anchoredLine{lineNum: msg.Line}
 
 			// if inserting has bumped any lines down, re-draw those lines in their new home
-			if idx < len(fixedLines)-1 {
-				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(len(fixedLines)-(idx+1)))
-				for i := idx + 1; i < len(fixedLines); i++ {
-					fmt.Fprint(l.cfg.Writer, fixedLines[i].str)
+			if idx < len(anchoredLines)-1 {
+				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(len(anchoredLines)-(idx+1)))
+				for i := idx + 1; i < len(anchoredLines); i++ {
+					fmt.Fprint(l.cfg.Writer, anchoredLines[i].str)
 					fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
 					fmt.Fprint(l.cfg.Writer, ansi.NextLine(1))
 				}
@@ -148,48 +150,48 @@ func (l *Buffered) processor() {
 			idx := fnMustFindIdx(msg.Line)
 
 			// remove element
-			copy(fixedLines[idx:], fixedLines[idx+1:])
-			fixedLines = fixedLines[:len(fixedLines)-1]
+			copy(anchoredLines[idx:], anchoredLines[idx+1:])
+			anchoredLines = anchoredLines[:len(anchoredLines)-1]
 
 			// redraw/erase bottom lines as needed
-			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(fixedLines)-idx))
-			for i := idx; i < len(fixedLines); i++ {
-				fmt.Fprint(l.cfg.Writer, fixedLines[i].str)
+			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(anchoredLines)-idx))
+			for i := idx; i < len(anchoredLines); i++ {
+				fmt.Fprint(l.cfg.Writer, anchoredLines[i].str)
 				fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
 				fmt.Fprint(l.cfg.Writer, ansi.NextLine(1))
 			}
 			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
 
 		case mtPrint:
-			// if we aren't using fixed lines, then just print normally
-			if len(fixedLines) == 0 {
+			// if we aren't using anchored lines, then just print normally
+			if len(anchoredLines) == 0 {
 				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
 				continue
 			}
 
-			// If we are using fixed lines, but this msg doesn't have one specified, then move all
-			// the fixed lines down, and draw this line above them.
-			// If this does have a fixed line, but it is not Transient level, then also print it above.
+			// If we are using anchored lines, but this msg doesn't have one specified, then move all
+			// the anchored lines down, and draw this line above them.
+			// If this does have an anchored line, but it is not Transient level, then also print it above.
 			if msg.Line <= 0 || msg.Level > Transient {
 				fmt.Fprint(l.cfg.Writer, "\n")
-				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(fixedLines)))
+				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(anchoredLines)))
 				fmt.Fprintf(l.cfg.Writer, "%s%s\n", msg.Msg, ansi.EraseEOL)
 
-				for _, v := range fixedLines {
+				for _, v := range anchoredLines {
 					fmt.Fprintf(l.cfg.Writer, "%s%s\n", v.str, ansi.EraseEOL)
 				}
 
-				// if we aren't using fixed lines, then we're done here...
+				// if we aren't using anchored lines, then we're done here...
 				if msg.Line <= 0 {
 					continue
 				}
 			}
 
-			// The cursor is kept under the bottom-most fixed line, so we'll move to the correct line,
+			// The cursor is kept under the bottom-most anchored line, so we'll move to the correct line,
 			// print, then move back.
 			idx := fnMustFindIdx(msg.Line)
-			fixedLines[idx].str = msg.Msg
-			offset := int(len(fixedLines) - idx)
+			anchoredLines[idx].str = msg.Msg
+			offset := int(len(anchoredLines) - idx)
 			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(offset))
 			fmt.Fprint(l.cfg.Writer, msg.Msg)
 			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
@@ -217,9 +219,9 @@ func (l *Buffered) Log(level Level, format string, fields ...Fielder) Logger {
 }
 
 // logImpl is only called if the line will be shown, regardless of level, line, etc
-func (l *Buffered) logImpl(prn Printer, fixedLine int32, level Level, format string, fields ...Fielder) {
+func (l *Buffered) logImpl(prn Printer, anchoredLine int32, level Level, format string, fields ...Fielder) {
 	l.ch <- bufmsg{
-		Line:  fixedLine,
+		Line:  anchoredLine,
 		Level: level,
 		Msg:   prn.Render(l.cfg.UseColor, level, format, fields...),
 	}

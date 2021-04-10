@@ -37,15 +37,15 @@ func Test_Golden(t *testing.T) {
 	}{
 		{"min-level", minLevel, &TextPrinter{PrintTime: false, PrintLevel: true}},
 		{"trims-newlines", newlineVariations, &TextPrinter{PrintTime: false, PrintLevel: true}},
-		{"fixed-lines-movement", moveBetweenFixedLines, &TextPrinter{PrintTime: false, PrintLevel: true}},
-		{"fixed-lines-add-remove", addAndRemoveFixedLines, &TextPrinter{PrintTime: false, PrintLevel: true}},
+		{"anchors-movement", moveBetweenAnchors, &TextPrinter{PrintTime: false, PrintLevel: true}},
+		{"anchors-add-remove", addAndRemoveAnchors, &TextPrinter{PrintTime: false, PrintLevel: true}},
 		{"fields", fields, &TextPrinter{PrintTime: false, PrintLevel: true}},
 	}
 
 	modesBasic := []string{"color", "plain"}
 	modesAll := []string{}
 	for _, v := range modesBasic {
-		modesAll = append(modesAll, v+".fixedline")
+		modesAll = append(modesAll, v+".anchor")
 		modesAll = append(modesAll, v)
 	}
 
@@ -58,7 +58,7 @@ func Test_Golden(t *testing.T) {
 					UseColor: strings.HasPrefix(mode, "color"),
 				}
 				var log Logger
-				if strings.HasSuffix(mode, ".fixedline") {
+				if strings.HasSuffix(mode, ".anchor") {
 					log = NewBuffered(cfg, tc.Printer)
 				} else {
 					log = NewUnbuffered(cfg, tc.Printer)
@@ -112,7 +112,7 @@ func Test_Golden(t *testing.T) {
 				}
 				tc.DoWork(tee)
 				tee.Close()
-				AssertGolden(t, tc.Name+"."+mode+".fixedline", buf1.Bytes())
+				AssertGolden(t, tc.Name+"."+mode+".anchor", buf1.Bytes())
 				AssertGolden(t, tc.Name+"."+mode, buf2.Bytes())
 			})
 		}
@@ -147,11 +147,11 @@ func newlineVariations(l Logger) {
 	l.Info("\nexcept these last couple\nof lines, which have\n\n\nnewline breaks\n")
 }
 
-func moveBetweenFixedLines(l Logger) {
+func moveBetweenAnchors(l Logger) {
 	f := []Logger{
-		AddFixedLine(l),
-		AddFixedLine(l),
-		AddFixedLine(l),
+		AddAnchor(l),
+		AddAnchor(l),
+		AddAnchor(l),
 	}
 	f[0].Transient("write to first line")
 	f[1].Transient("write to second line")
@@ -164,31 +164,31 @@ func moveBetweenFixedLines(l Logger) {
 	f[0].Transient("done")
 }
 
-func addAndRemoveFixedLines(l Logger) {
-	l.Info("before adding fixed logger 1")
-	fl := AddFixedLine(l)
-	fl.Transient("first fixed line")
+func addAndRemoveAnchors(l Logger) {
+	l.Info("before adding anchored logger 1")
+	fl := AddAnchor(l)
+	fl.Transient("first anchored line")
 	l.Warning("main logger should still log properly")
-	fl.Transient("first fixed line again")
-	RemoveFixedLine(fl)
-	l.Info("after removing fixed logger 1")
+	fl.Transient("first anchored line again")
+	RemoveAnchor(fl)
+	l.Info("after removing anchored logger 1")
 
-	l.Info("before adding fixed logger 2")
-	fl2 := AddFixedLine(l)
-	l.Info("before adding fixed logger 3")
-	fl3 := AddFixedLine(l)
+	l.Info("before adding anchored logger 2")
+	fl2 := AddAnchor(l)
+	l.Info("before adding anchored logger 3")
+	fl3 := AddAnchor(l)
 	fl2.Transient("logger 2 status update A")
 	l.Info("regular log")
 	fl3.Transient("logger 3 status update A")
 	fl2.Info("another regular log (via fl2)")
 	fl3.Transient("logger 3 status update B")
 	fl2.Transient("logger 2 status update B")
-	RemoveFixedLine(fl3)
+	RemoveAnchor(fl3)
 	fl3.Transient("THIS SHOULD NOT BE OUTPUT")
 	fl3.Info("this should be redirected to parent logger")
 
 	// End now, before removing fl2, because it should be safe to close a logger
-	// without first removing all fixed lines.
+	// without first removing all anchored lines.
 }
 
 func fields(l Logger) {
@@ -283,7 +283,7 @@ func fields(l Logger) {
 	l.Warning("uint64", Uint64("min", uint64(0)))
 }
 
-func Test_FixedLine_Close(t *testing.T) {
+func Test_Anchor_Close(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Expected panic")
@@ -297,35 +297,35 @@ func Test_FixedLine_Close(t *testing.T) {
 		UseColor: false,
 	}
 	log := NewBuffered(cfg, &TextPrinter{})
-	fl := AddFixedLine(log)
-	// FixedLine panics if you call close (you should only call the parent's close)
+	fl := AddAnchor(log)
+	// Anchor panics if you call close (you should only call the parent's close)
 	fl.Close()
 }
 
 func Test_AssertInterfaces(t *testing.T) {
 	fnAssertAdder := func(t *testing.T, log Logger) {
 		t.Helper()
-		_, ok := log.(FixedLineAdder)
+		_, ok := log.(AnchorAdder)
 		if !ok {
-			t.Errorf("logger is not a FixedLineAdder")
+			t.Errorf("logger is not a AnchorAdder")
 		}
 	}
 
 	fnAssertRemover := func(t *testing.T, log Logger) {
 		t.Helper()
-		_, ok := log.(FixedLineRemover)
+		_, ok := log.(AnchorRemover)
 		if !ok {
-			t.Errorf("logger is not a FixedLineRemover")
+			t.Errorf("logger is not a AnchorRemover")
 		}
 	}
 
 	bl := NewBuffered(Config{Writer: &bytes.Buffer{}}, &TextPrinter{})
 	fnAssertAdder(t, bl)
-	blfl := AddFixedLine(bl)
+	blfl := AddAnchor(bl)
 	fnAssertRemover(t, blfl)
 
 	tl := &TeeLogger{}
 	fnAssertAdder(t, tl)
-	tlfl := AddFixedLine(tl)
+	tlfl := AddAnchor(tl)
 	fnAssertRemover(t, tlfl)
 }

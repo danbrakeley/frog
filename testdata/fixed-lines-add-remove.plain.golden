@@ -1,8 +1,0 @@
-[nfo] before adding fixed logger 1
-[WRN] main logger should still log properly
-[nfo] after removing fixed logger 1
-[nfo] before adding fixed logger 2
-[nfo] before adding fixed logger 3
-[nfo] regular log
-[nfo] another regular log (via fl2)
-[nfo] this should be redirected to parent logger

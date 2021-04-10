@@ -69,12 +69,12 @@ func main() {
 	wg.Add(threads)
 	for i := 0; i < threads; i++ {
 		n := i
-		fl := frog.AddFixedLine(log)
+		fl := frog.AddAnchor(log)
 		go func() {
 			fl.Verbose("thread spawned", frog.Int("thread", n))
 			runProcess(fl, n)
 			fl.Verbose("thread closing", frog.Int("thread", n))
-			frog.RemoveFixedLine(fl)
+			frog.RemoveAnchor(fl)
 			wg.Done()
 		}()
 	}

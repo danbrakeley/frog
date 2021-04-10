@@ -11,16 +11,16 @@ func (l *TeeLogger) Close() {
 	l.Secondary.Close()
 }
 
-func (l *TeeLogger) AddFixedLine() Logger {
+func (l *TeeLogger) AddAnchor() Logger {
 	return &TeeLogger{
-		Primary:   AddFixedLine(l.Primary),
-		Secondary: AddFixedLine(l.Secondary),
+		Primary:   AddAnchor(l.Primary),
+		Secondary: AddAnchor(l.Secondary),
 	}
 }
 
-func (l *TeeLogger) RemoveFixedLine() {
-	RemoveFixedLine(l.Primary)
-	RemoveFixedLine(l.Secondary)
+func (l *TeeLogger) RemoveAnchor() {
+	RemoveAnchor(l.Primary)
+	RemoveAnchor(l.Secondary)
 }
 
 func (l *TeeLogger) SetMinLevel(level Level) Logger {

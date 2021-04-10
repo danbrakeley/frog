@@ -60,9 +60,9 @@ func HasTerminal(w io.Writer) bool {
 }
 
 // New creates a Logger that writes to os.Stdout, depending on the NewLogger type passed to it:
-// - Auto - if terminal detected on stdout, then colors and fixed lines are supported (else, uses Basic)
-// - Basic - no colors or fixed lines, no buffering
-// - JSON - no colors or fixed lines, no buffering, and each line is a valid JSON object
+// - Auto - if terminal detected on stdout, then colors and anchored lines are supported (else, uses Basic)
+// - Basic - no colors or anchored lines, no buffering
+// - JSON - no colors or anchored lines, no buffering, and each line is a valid JSON object
 // Resulting Logger can be modified by including 1 or more NewOpts after the NewLogger type.
 // The caller is responsible for calling Close() when done with the returned Logger.
 func New(t NewLogger, opts ...Option) Logger {
@@ -147,29 +147,29 @@ func New(t NewLogger, opts ...Option) Logger {
 	return nil
 }
 
-// AddFixedLine adds a new logger on a fixed line, if supported.
+// AddAnchor adds a new logger on an anchored line, if supported.
 // Else, returns passed in Logger.
-func AddFixedLine(log Logger) Logger {
-	fla, ok := log.(FixedLineAdder)
+func AddAnchor(log Logger) Logger {
+	fla, ok := log.(AnchorAdder)
 	if ok {
-		fl := fla.AddFixedLine()
+		fl := fla.AddAnchor()
 		if fl == nil {
 			return log
 		}
 		return fl
 	}
-	// if we are a child that doesn't create its own fixed lines, then pass up to parent
+	// if we are a child that doesn't create its own anchored lines, then pass up to parent
 	parent := Parent(log)
 	if parent != nil {
-		return AddFixedLine(parent)
+		return AddAnchor(parent)
 	}
 	return log
 }
 
-func RemoveFixedLine(log Logger) {
-	flr, ok := log.(FixedLineRemover)
+func RemoveAnchor(log Logger) {
+	flr, ok := log.(AnchorRemover)
 	if ok {
-		flr.RemoveFixedLine()
+		flr.RemoveAnchor()
 	}
 }
 

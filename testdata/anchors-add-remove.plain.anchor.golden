@@ -1,13 +1,13 @@
-[nfo] before adding fixed logger 1
+[nfo] before adding anchored logger 1
 
-[1F[==>] first fixed line[K[1E
+[1F[==>] first anchored line[K[1E
 [2F[WRN] main logger should still log properly[K
-[==>] first fixed line[K
-[1F[==>] first fixed line again[K[1E[1F[K[nfo] after removing fixed logger 1
-[nfo] before adding fixed logger 2
+[==>] first anchored line[K
+[1F[==>] first anchored line again[K[1E[1F[K[nfo] after removing anchored logger 1
+[nfo] before adding anchored logger 2
 
 
-[2F[nfo] before adding fixed logger 3[K
+[2F[nfo] before adding anchored logger 3[K
 [K
 
 [2F[==>] logger 2 status update A[K[2E

@@ -34,7 +34,7 @@ The quickest way to get started is to create one of the default `Logger`s via a 
   log.Info("Example log line")
   log.Warning("Example warning")
 
-  status := frog.AddFixedLine(log)
+  status := frog.AddAnchor(log)
   for i := 0; i <= 100; i++ {
     status.Transient(" + complete", frog.Int("percent", n))
     time.Sleep(time.Duration(10) * time.Millisecond)
@@ -42,9 +42,9 @@ The quickest way to get started is to create one of the default `Logger`s via a 
   status.Info("Done", n)
 ```
 
-The parameter `frog.Auto` tells `New` to autodetect if there's a terminal on stdout, and if so, to enable support for fixed (aka anchored) lines and colors. There are other default styles you can pass to `New` as well, like `frog.Basic` and `frog.JSON`.
+The parameter `frog.Auto` tells `New` to autodetect if there's a terminal on stdout, and if so, to enable support for anchored lines and colors. There are other default styles you can pass to `New` as well, like `frog.Basic` and `frog.JSON`.
 
-`frog.JSON` will output each log line as a single JSON object. This allows structured data to be easily consumed by a log parser that supports it (ie [filebeat](https://www.elastic.co/products/beats/filebeat)). A JSON logger created in this way doesn't support fixed lines, and by default will not output Transient level lines. Note that you can still call AddFixedLine and Transient on such a logger, as the API remains consistent and valid, but nothing changes in the output as a result of these calls.
+`frog.JSON` will output each log line as a single JSON object. This allows structured data to be easily consumed by a log parser that supports it (ie [filebeat](https://www.elastic.co/products/beats/filebeat)). A JSON logger created in this way doesn't support anchored lines, and by default will not output Transient level lines. Note that you can still call AddAnchor and Transient on such a logger, as the API remains consistent and valid, but nothing changes in the output as a result of these calls.
 
 You can also build a custom Logger, if you prefer. See the implementation of the `New` function in [frog.go](https://github.com/danbrakeley/frog/blob/master/frog.go#L40-L79) for examples.
 
@@ -63,12 +63,13 @@ level | description
 
 - ✓ ~~Write to two Loggers simultaneously~~
 - ✓ ~~JSON Printer~~
-- ✓ ~~rework how fixed lines are released~~
+- ✓ ~~rework how anchored lines are released~~
 - ✓ ~~structured logging~~
 - ✓ ~~NullLogger for when you want to pass a frog.Logger that nops~~
 - ✓ ~~add options to frog.New() for color, timestamps, etc~~
 - ✓ ~~TextLogger has min indent (greater than normal indent) for the first field~~
 - ✓ ~~use colors to make difference betwen fields and msg more obvious~~
+- ✓ ~~Rename fixed to anchor/anchored~~
 - FilterLogger which can dynamically switch between logging and nopping
 - go doc pass
 - run it on other platforms

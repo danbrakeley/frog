@@ -1,8 +1,0 @@
-[37m[nfo] [97mbefore adding fixed logger 1[0m
-[33m[WRN] [93mmain logger should still log properly[0m
-[37m[nfo] [97mafter removing fixed logger 1[0m
-[37m[nfo] [97mbefore adding fixed logger 2[0m
-[37m[nfo] [97mbefore adding fixed logger 3[0m
-[37m[nfo] [97mregular log[0m
-[37m[nfo] [97manother regular log (via fl2)[0m
-[37m[nfo] [97mthis should be redirected to parent logger[0m
