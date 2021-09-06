@@ -31,15 +31,14 @@ func AssertGolden(t *testing.T, testName string, actual []byte) {
 
 func Test_Golden(t *testing.T) {
 	cases := []struct {
-		Name    string
-		DoWork  func(Logger)
-		Printer Printer
+		Name   string
+		DoWork func(Logger)
 	}{
-		{"min-level", minLevel, &TextPrinter{PrintTime: false, PrintLevel: true}},
-		{"trims-newlines", newlineVariations, &TextPrinter{PrintTime: false, PrintLevel: true}},
-		{"anchors-movement", moveBetweenAnchors, &TextPrinter{PrintTime: false, PrintLevel: true}},
-		{"anchors-add-remove", addAndRemoveAnchors, &TextPrinter{PrintTime: false, PrintLevel: true}},
-		{"fields", fields, &TextPrinter{PrintTime: false, PrintLevel: true}},
+		{"min-level", minLevel},
+		{"trims-newlines", newlineVariations},
+		{"anchors-movement", moveBetweenAnchors},
+		{"anchors-add-remove", addAndRemoveAnchors},
+		{"fields", fields},
 	}
 
 	modesBasic := []string{"color", "plain"}
@@ -49,7 +48,23 @@ func Test_Golden(t *testing.T) {
 		modesAll = append(modesAll, v)
 	}
 
+	basicPrinter := TextPrinter{PrintTime: false, PrintLevel: true}
+	swapPrinter := TextPrinter{PrintTime: false, PrintLevel: true, SwapFieldsAndMessage: true}
+
+	var printer Printer
+	var namemod string
+
 	for _, tc := range cases {
+		for i := 0; i < 2; i++ {
+			switch i {
+			case 0:
+				printer = &basicPrinter
+				namemod = "."
+			case 1:
+				printer = &swapPrinter
+				namemod = ".swap."
+			}
+		}
 		for _, mode := range modesAll {
 			t.Run(tc.Name+"."+mode, func(t *testing.T) {
 				buf := &bytes.Buffer{}
@@ -59,13 +74,13 @@ func Test_Golden(t *testing.T) {
 				}
 				var log Logger
 				if strings.HasSuffix(mode, ".anchor") {
-					log = NewBuffered(cfg, tc.Printer)
+					log = NewBuffered(cfg, printer)
 				} else {
-					log = NewUnbuffered(cfg, tc.Printer)
+					log = NewUnbuffered(cfg, printer)
 				}
 				tc.DoWork(log)
 				log.Close()
-				AssertGolden(t, tc.Name+"."+mode, buf.Bytes())
+				AssertGolden(t, tc.Name+namemod+mode, buf.Bytes())
 			})
 		}
 
@@ -107,8 +122,8 @@ func Test_Golden(t *testing.T) {
 				buf1 := &bytes.Buffer{}
 				buf2 := &bytes.Buffer{}
 				tee := &TeeLogger{
-					Primary:   NewBuffered(Config{Writer: buf1, UseColor: useColor}, tc.Printer),
-					Secondary: NewUnbuffered(Config{Writer: buf2, UseColor: useColor}, tc.Printer),
+					Primary:   NewBuffered(Config{Writer: buf1, UseColor: useColor}, &basicPrinter),
+					Secondary: NewUnbuffered(Config{Writer: buf2, UseColor: useColor}, &basicPrinter),
 				}
 				tc.DoWork(tee)
 				tee.Close()

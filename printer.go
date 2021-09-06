@@ -29,6 +29,11 @@ type TextPrinter struct {
 	//   [nfo] short     fieldIndent=0
 	//   [nfo] sh   fieldIndent=0
 	FieldIndent int
+	// SwapFieldsAndMessage will cause the message to display after the fields, instead of before
+	// For example:
+	//   [nfo] fieldIndent=40                          short message
+	//   [nfo] fieldIndent=10      something  a long message that overflows the first field indent
+	SwapFieldsAndMessage bool
 }
 
 func trimNewlines(str string) string {
@@ -108,14 +113,61 @@ func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...F
 		}
 	}
 
-	if useColor {
-		sb.WriteString(ansiLevelPrimary(level))
+	fnWriteMsg := func() int {
+		if useColor {
+			sb.WriteString(ansiLevelPrimary(level))
+		}
+		sb.WriteString(msg)
+		return utf8.RuneCountInString(msg)
 	}
-	sb.WriteString(msg)
 
-	if len(fields) > 0 {
-		visibleRuneCount := utf8.RuneCountInString(msg)
+	fnWriteFields := func() int {
+		count := 0
+		for i, f := range fields {
+			if i != 0 {
+				sb.WriteByte(' ')
+				count++
+			}
+			field := f.Field()
+			v := field.Value
+			if field.IsJSONString {
+				if !field.IsJSONSafe {
+					v = escapeStringForTerminal(v)
+				}
+				if len(v) == 0 || strings.ContainsAny(v, " \\") {
+					v = "\"" + v + "\""
+				}
+			}
 
+			if useColor {
+				sb.WriteString(ansiLevelSecondary(level))
+			}
+			sb.WriteString(field.Name)
+			count += utf8.RuneCountInString(field.Name)
+			sb.WriteByte('=')
+			count += 1
+			if useColor {
+				sb.WriteString(ansiLevelPrimary(level))
+			}
+			sb.WriteString(v)
+			count += utf8.RuneCountInString(v)
+		}
+		return count
+	}
+
+	// write left side
+	var visibleRuneCount int
+	var hasRightSide bool
+	if p.SwapFieldsAndMessage {
+		visibleRuneCount = fnWriteFields()
+		hasRightSide = len(msg) > 0
+	} else {
+		visibleRuneCount = fnWriteMsg()
+		hasRightSide = len(fields) > 0
+	}
+
+	// write indentation
+	if visibleRuneCount > 0 && hasRightSide {
 		minLen := p.FieldIndent
 		const minSpace = 3
 		const tabWidth = 5
@@ -130,30 +182,14 @@ func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...F
 			sb.WriteByte(' ')
 		}
 	}
-	for i, f := range fields {
-		if i != 0 {
-			sb.WriteByte(' ')
-		}
-		field := f.Field()
-		v := field.Value
-		if field.IsJSONString {
-			if !field.IsJSONSafe {
-				v = escapeStringForTerminal(v)
-			}
-			if len(v) == 0 || strings.ContainsAny(v, " \\") {
-				v = "\"" + v + "\""
-			}
-		}
 
-		if useColor {
-			sb.WriteString(ansiLevelSecondary(level))
+	if hasRightSide {
+		// write right side
+		if p.SwapFieldsAndMessage {
+			fnWriteMsg()
+		} else {
+			fnWriteFields()
 		}
-		sb.WriteString(field.Name)
-		sb.WriteByte('=')
-		if useColor {
-			sb.WriteString(ansiLevelPrimary(level))
-		}
-		sb.WriteString(v)
 	}
 
 	if useColor {

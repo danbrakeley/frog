@@ -42,6 +42,10 @@ const (
 	ShowLevel
 	// HideLevel disables the inclusion of the log level with each log line. Note that JSON type always adds log level.
 	HideLevel
+	// MessageOnLeft puts any fields on the right and the message on the left (default behavior). JSON type ignores this.
+	MessageOnLeft
+	// MessageOnRight puts any fields on the left and the message on the right. JSON type ignores this.
+	MessageOnRight
 	// Indent* sets the min field indentation (default is 20; see TextPrinter's FieldIndent)
 	FieldIndent10
 	FieldIndent20
@@ -75,6 +79,7 @@ func New(t NewLogger, opts ...Option) Logger {
 	var showTime bool = true
 	var showLevel bool = true
 	var writer io.Writer = os.Stdout
+	var swap bool = false
 	var fieldIndent int = 20
 	for _, opt := range opts {
 		switch opt {
@@ -94,6 +99,10 @@ func New(t NewLogger, opts ...Option) Logger {
 			showLevel = true
 		case HideLevel:
 			showLevel = false
+		case MessageOnLeft:
+			swap = false
+		case MessageOnRight:
+			swap = true
 		case FieldIndent10:
 			fieldIndent = 10
 		case FieldIndent20:
@@ -117,9 +126,10 @@ func New(t NewLogger, opts ...Option) Logger {
 				UseColor: useColor,
 			},
 			&TextPrinter{
-				PrintTime:   showTime,
-				PrintLevel:  showLevel,
-				FieldIndent: fieldIndent,
+				PrintTime:            showTime,
+				PrintLevel:           showLevel,
+				FieldIndent:          fieldIndent,
+				SwapFieldsAndMessage: swap,
 			},
 		)
 	case Basic:
@@ -129,9 +139,10 @@ func New(t NewLogger, opts ...Option) Logger {
 				UseColor: false,
 			},
 			&TextPrinter{
-				PrintTime:   showTime,
-				PrintLevel:  showLevel,
-				FieldIndent: fieldIndent,
+				PrintTime:            showTime,
+				PrintLevel:           showLevel,
+				FieldIndent:          fieldIndent,
+				SwapFieldsAndMessage: swap,
 			},
 		)
 	case JSON:

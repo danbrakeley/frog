@@ -16,6 +16,7 @@ var verbose = flag.Bool("verbose", false, "drop min level from info to verbose")
 var json = flag.Bool("json", false, "output structured JSON")
 var noTime = flag.Bool("notime", false, "do not include timestamps (ignored if using -json)")
 var noLevel = flag.Bool("nolevel", false, "do not include level (ignored if using -json)")
+var swap = flag.Bool("swap", false, "swap message and fields in each line of output (ignored if using -json)")
 
 func main() {
 	flag.Parse()
@@ -31,6 +32,9 @@ func main() {
 	}
 	if *noLevel {
 		opts = append(opts, frog.HideLevel)
+	}
+	if *swap {
+		opts = append(opts, frog.MessageOnRight)
 	}
 
 	log := frog.New(style, opts...)
