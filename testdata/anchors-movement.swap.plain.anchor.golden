@@ -1,9 +1,0 @@
-
-
-
-[3F[==>] write to first line[K[3E[2F[==>] write to second line[K[2E[1F[==>] write to third line[K[1E[3F[==>] write back to first line[K[3E[1F[==>] now we're on the third line again[K[1E
-[4F[WRN] something unexpected happened on the first line[K
-[==>] write back to first line[K
-[==>] write to second line[K
-[==>] now we're on the third line again[K
-[2F[==>] done[K[2E[1F[==>] done[K[1E[3F[==>] done[K[3E

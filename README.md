@@ -70,6 +70,7 @@ level | description
 - ✓ ~~TextLogger has min indent (greater than normal indent) for the first field~~
 - ✓ ~~use colors to make difference betwen fields and msg more obvious~~
 - ✓ ~~Rename fixed to anchor/anchored~~
+- Lock in fields via child loggers
 - FilterLogger which can dynamically switch between logging and nopping
 - go doc pass
 - run it on other platforms

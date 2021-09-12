@@ -1,9 +1,0 @@
-
-
-
-[3F[90m[==>] [32mwrite to first line[0m[K[3E[2F[90m[==>] [32mwrite to second line[0m[K[2E[1F[90m[==>] [32mwrite to third line[0m[K[1E[3F[90m[==>] [32mwrite back to first line[0m[K[3E[1F[90m[==>] [32mnow we're on the third line again[0m[K[1E
-[4F[33m[WRN] [93msomething unexpected happened on the first line[0m[K
-[90m[==>] [32mwrite back to first line[0m[K
-[90m[==>] [32mwrite to second line[0m[K
-[90m[==>] [32mnow we're on the third line again[0m[K
-[2F[90m[==>] [32mdone[0m[K[2E[1F[90m[==>] [32mdone[0m[K[1E[3F[90m[==>] [32mdone[0m[K[3E
