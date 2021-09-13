@@ -26,18 +26,12 @@ func main() {
 		style = frog.JSON
 	}
 
-	opts := []frog.Option{frog.FieldIndent40}
-	if *noTime {
-		opts = append(opts, frog.HideTimestamps)
-	}
-	if *noLevel {
-		opts = append(opts, frog.HideLevel)
-	}
-	if *swap {
-		opts = append(opts, frog.MessageOnRight)
-	}
-
-	log := frog.New(style, opts...)
+	log := frog.New(style,
+		frog.POFieldIndent(40),
+		frog.POShowTime(!*noTime),
+		frog.POShowLevel(!*noLevel),
+		frog.POMessageLast(!*swap),
+	)
 	defer log.Close()
 
 	log.Info("Frog Example App")

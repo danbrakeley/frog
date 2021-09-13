@@ -104,14 +104,14 @@ func Test_SwapMessageAndFields(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".unbuf.swap", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true, SwapFieldsAndMessage: true})
+			log := NewUnbuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true, PrintMessageLast: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap", buf.Bytes())
 		})
 		t.Run(tc.Name+".unbuf.swap.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true, SwapFieldsAndMessage: true})
+			log := NewUnbuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true, PrintMessageLast: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap.color", buf.Bytes())

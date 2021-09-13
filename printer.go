@@ -2,12 +2,20 @@ package frog
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/danbrakeley/frog/ansi"
 )
+
+var isNoColorSet = false
+
+func init() {
+	_, exists := os.LookupEnv("NO_COLOR")
+	isNoColorSet = exists
+}
 
 type Palette byte
 
@@ -19,6 +27,7 @@ const (
 
 type Printer interface {
 	Render(Level, string, ...Fielder) string
+	SetOptions(...PrinterOption) Printer
 }
 
 type TextPrinter struct {
@@ -38,11 +47,29 @@ type TextPrinter struct {
 	//   [nfo] short     fieldIndent=0
 	//   [nfo] sh   fieldIndent=0
 	FieldIndent int
-	// SwapFieldsAndMessage will cause the message to display after the fields, instead of before
+	// PrintMessageLast will cause the message to display after the fields, instead of before
 	// For example:
 	//   [nfo] fieldIndent=40                          short message
 	//   [nfo] fieldIndent=10      something  a long message that overflows the first field indent
-	SwapFieldsAndMessage bool
+	PrintMessageLast bool
+}
+
+func (p *TextPrinter) SetOptions(opts ...PrinterOption) Printer {
+	for _, opt := range opts {
+		switch opt.Value() {
+		case poPalette:
+			p.Palette = Palette(opt.AsInt())
+		case poShowTime:
+			p.PrintTime = opt.AsBool()
+		case poShowLevel:
+			p.PrintLevel = opt.AsBool()
+		case poFieldIndent:
+			p.FieldIndent = opt.AsInt()
+		case poMessageLast:
+			p.PrintMessageLast = opt.AsBool()
+		}
+	}
+	return p
 }
 
 func trimNewlines(str string) string {
@@ -77,17 +104,19 @@ func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string 
 	var useColor bool
 	var colorPrimary, colorSecondary string
 
-	switch p.Palette {
-	case PalNone:
-		useColor = false
-	case PalColor:
-		useColor = true
-		colorPrimary = ansi.CSI + colorsMain[level][0] + "m"
-		colorSecondary = ansi.CSI + colorsMain[level][1] + "m"
-	case PalDark:
-		useColor = true
-		colorPrimary = ansi.CSI + colorsDark[level][0] + "m"
-		colorSecondary = ansi.CSI + colorsDark[level][1] + "m"
+	if !isNoColorSet {
+		switch p.Palette {
+		case PalNone:
+			useColor = false
+		case PalColor:
+			useColor = true
+			colorPrimary = ansi.CSI + colorsMain[level][0] + "m"
+			colorSecondary = ansi.CSI + colorsMain[level][1] + "m"
+		case PalDark:
+			useColor = true
+			colorPrimary = ansi.CSI + colorsDark[level][0] + "m"
+			colorSecondary = ansi.CSI + colorsDark[level][1] + "m"
+		}
 	}
 
 	msg = escapeStringForTerminal(trimNewlines(msg))
@@ -167,7 +196,7 @@ func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string 
 	// write left side
 	var visibleRuneCount int
 	var hasRightSide bool
-	if p.SwapFieldsAndMessage {
+	if p.PrintMessageLast {
 		visibleRuneCount = fnWriteFields()
 		hasRightSide = len(msg) > 0
 	} else {
@@ -194,7 +223,7 @@ func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string 
 
 	if hasRightSide {
 		// write right side
-		if p.SwapFieldsAndMessage {
+		if p.PrintMessageLast {
 			fnWriteMsg()
 		} else {
 			fnWriteFields()
@@ -210,6 +239,11 @@ func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string 
 
 type JSONPrinter struct {
 	TimeOverride time.Time
+}
+
+func (p *JSONPrinter) SetOptions(opts ...PrinterOption) Printer {
+	// JSONPrinter doesn't currently respect any printer options
+	return p
 }
 
 func (p *JSONPrinter) Render(level Level, msg string, fields ...Fielder) string {
