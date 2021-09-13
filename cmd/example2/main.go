@@ -16,7 +16,7 @@ func sleep(ms int) {
 func main() {
 	flag.Parse()
 
-	log := frog.New(frog.Auto)
+	log := frog.New(frog.Auto, frog.AllDark)
 	defer log.Close()
 
 	threads := 3

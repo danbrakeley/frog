@@ -9,11 +9,20 @@ import (
 	"github.com/danbrakeley/frog/ansi"
 )
 
+type Palette byte
+
+const (
+	PalNone Palette = iota
+	PalColor
+	PalDark
+)
+
 type Printer interface {
-	Render(useColor bool, level Level, format string, fields ...Fielder) string
+	Render(Level, string, ...Fielder) string
 }
 
 type TextPrinter struct {
+	Palette    Palette
 	PrintTime  bool
 	PrintLevel bool
 	// FieldIndent controls where the first field begins rendering, compared to the message.
@@ -46,48 +55,48 @@ func trimNewlines(str string) string {
 	return str
 }
 
-func ansiLevelPrimary(level Level) string {
-	switch level {
-	case Transient:
-		return ansi.CSI + ansi.FgDarkGreen + "m"
-	case Verbose:
-		return ansi.CSI + ansi.FgCyan + "m"
-	case Info:
-		return ansi.CSI + ansi.FgWhite + "m"
-	case Warning:
-		return ansi.CSI + ansi.FgYellow + "m"
-	case Error, Fatal:
-		return ansi.CSI + ansi.FgRed + "m"
-	default:
-		return ansi.CSI + ansi.BgWhite + ";" + ansi.FgBlack + "m"
-	}
+var colorsMain = [levelMax][2]string{
+	{ansi.FgDarkGreen, ansi.FgDarkGray}, // Transient
+	{ansi.FgCyan, ansi.FgDarkCyan},      // Verbose
+	{ansi.FgWhite, ansi.FgLightGray},    // Info
+	{ansi.FgYellow, ansi.FgDarkYellow},  // Warning
+	{ansi.FgRed, ansi.FgDarkRed},        // Error
+	{ansi.FgRed, ansi.FgDarkRed},        // Fatal
 }
 
-func ansiLevelSecondary(level Level) string {
-	switch level {
-	case Transient:
-		return ansi.CSI + ansi.FgDarkGray + "m"
-	case Verbose:
-		return ansi.CSI + ansi.FgDarkCyan + "m"
-	case Info:
-		return ansi.CSI + ansi.FgLightGray + "m"
-	case Warning:
-		return ansi.CSI + ansi.FgDarkYellow + "m"
-	case Error, Fatal:
-		return ansi.CSI + ansi.FgDarkRed + "m"
-	default:
-		return ansi.CSI + ansi.BgLightGray + ";" + ansi.FgBlack + "m"
-	}
+var colorsDark = [levelMax][2]string{
+	{ansi.FgDarkGray, ansi.FgDarkGray}, // Transient
+	{ansi.FgDarkGray, ansi.FgDarkGray}, // Verbose
+	{ansi.FgDarkGray, ansi.FgDarkGray}, // Info
+	{ansi.FgDarkGray, ansi.FgDarkGray}, // Warning
+	{ansi.FgDarkGray, ansi.FgDarkGray}, // Error
+	{ansi.FgDarkGray, ansi.FgDarkGray}, // Fatal
 }
 
-func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...Fielder) string {
+func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string {
+	var useColor bool
+	var colorPrimary, colorSecondary string
+
+	switch p.Palette {
+	case PalNone:
+		useColor = false
+	case PalColor:
+		useColor = true
+		colorPrimary = ansi.CSI + colorsMain[level][0] + "m"
+		colorSecondary = ansi.CSI + colorsMain[level][1] + "m"
+	case PalDark:
+		useColor = true
+		colorPrimary = ansi.CSI + colorsDark[level][0] + "m"
+		colorSecondary = ansi.CSI + colorsDark[level][1] + "m"
+	}
+
 	msg = escapeStringForTerminal(trimNewlines(msg))
 
 	var sb strings.Builder
 	sb.Grow(256)
 
 	if useColor {
-		sb.WriteString(ansiLevelSecondary(level))
+		sb.WriteString(colorSecondary)
 	}
 
 	if p.PrintTime {
@@ -115,7 +124,7 @@ func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...F
 
 	fnWriteMsg := func() int {
 		if useColor {
-			sb.WriteString(ansiLevelPrimary(level))
+			sb.WriteString(colorPrimary)
 		}
 		sb.WriteString(msg)
 		return utf8.RuneCountInString(msg)
@@ -140,14 +149,14 @@ func (p *TextPrinter) Render(useColor bool, level Level, msg string, fields ...F
 			}
 
 			if useColor {
-				sb.WriteString(ansiLevelSecondary(level))
+				sb.WriteString(colorSecondary)
 			}
 			sb.WriteString(field.Name)
 			count += utf8.RuneCountInString(field.Name)
 			sb.WriteByte('=')
 			count += 1
 			if useColor {
-				sb.WriteString(ansiLevelPrimary(level))
+				sb.WriteString(colorPrimary)
 			}
 			sb.WriteString(v)
 			count += utf8.RuneCountInString(v)
@@ -203,7 +212,7 @@ type JSONPrinter struct {
 	TimeOverride time.Time
 }
 
-func (p *JSONPrinter) Render(useColor bool, level Level, msg string, fields ...Fielder) string {
+func (p *JSONPrinter) Render(level Level, msg string, fields ...Fielder) string {
 	var stamp time.Time
 	if !p.TimeOverride.IsZero() {
 		stamp = p.TimeOverride

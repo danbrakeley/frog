@@ -29,11 +29,13 @@ const (
 	UseStdout Option = iota
 	// UseStderr sends all output to stderr.
 	UseStderr
+	// NoColor disables use of ANSI commands to add color.
+	NoColor
 	// Color enables use of ANSI commands to add color (default). Note that colors cannot be enabled when
 	// using the Basic or JSON logger types, or if a NO_COLOR environment variable is present.
 	Color
-	// NoColor disables use of ANSI commands to add color.
-	NoColor
+	// AllDark enables ANSI color, but uses dark gray for everything.
+	AllDark
 	// ShowTimestamps enables the inclusion of time/date (default). Note that JSON type always adds timestamps.
 	ShowTimestamps
 	// HideTimestamps disables the inclusion of time/date.
@@ -75,7 +77,7 @@ func New(t NewLogger, opts ...Option) Logger {
 	}
 
 	// process options
-	var useColor bool = true
+	var pal Palette = PalColor
 	var showTime bool = true
 	var showLevel bool = true
 	var writer io.Writer = os.Stdout
@@ -87,10 +89,12 @@ func New(t NewLogger, opts ...Option) Logger {
 			writer = os.Stdout
 		case UseStderr:
 			writer = os.Stderr
-		case Color:
-			useColor = true
 		case NoColor:
-			useColor = false
+			pal = PalNone
+		case Color:
+			pal = PalColor
+		case AllDark:
+			pal = PalDark
 		case ShowTimestamps:
 			showTime = true
 		case HideTimestamps:
@@ -115,17 +119,15 @@ func New(t NewLogger, opts ...Option) Logger {
 	}
 
 	if isNoColorSet {
-		useColor = false
+		pal = PalNone
 	}
 
 	switch t {
 	case Auto:
 		return NewBuffered(
-			Config{
-				Writer:   writer,
-				UseColor: useColor,
-			},
+			writer,
 			&TextPrinter{
+				Palette:              pal,
 				PrintTime:            showTime,
 				PrintLevel:           showLevel,
 				FieldIndent:          fieldIndent,
@@ -134,11 +136,9 @@ func New(t NewLogger, opts ...Option) Logger {
 		)
 	case Basic:
 		return NewUnbuffered(
-			Config{
-				Writer:   writer,
-				UseColor: false,
-			},
+			writer,
 			&TextPrinter{
+				Palette:              pal,
 				PrintTime:            showTime,
 				PrintLevel:           showLevel,
 				FieldIndent:          fieldIndent,
@@ -146,13 +146,7 @@ func New(t NewLogger, opts ...Option) Logger {
 			},
 		)
 	case JSON:
-		return NewUnbuffered(
-			Config{
-				Writer:   writer,
-				UseColor: false,
-			},
-			&JSONPrinter{},
-		)
+		return NewUnbuffered(writer, &JSONPrinter{})
 	}
 
 	return nil
@@ -161,13 +155,13 @@ func New(t NewLogger, opts ...Option) Logger {
 // AddAnchor adds a new logger on an anchored line, if supported.
 // Else, returns passed in Logger.
 func AddAnchor(log Logger) Logger {
-	fla, ok := log.(AnchorAdder)
+	aa, ok := log.(AnchorAdder)
 	if ok {
-		fl := fla.AddAnchor()
-		if fl == nil {
+		a := aa.AddAnchor()
+		if a == nil {
 			return log
 		}
-		return fl
+		return a
 	}
 	// if we are a child that doesn't create its own anchored lines, then pass up to parent
 	parent := Parent(log)
@@ -178,9 +172,9 @@ func AddAnchor(log Logger) Logger {
 }
 
 func RemoveAnchor(log Logger) {
-	flr, ok := log.(AnchorRemover)
+	ar, ok := log.(AnchorRemover)
 	if ok {
-		flr.RemoveAnchor()
+		ar.RemoveAnchor()
 	}
 }
 

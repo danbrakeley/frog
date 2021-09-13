@@ -41,19 +41,17 @@ func Test_BufferedLogger(t *testing.T) {
 		{"fields", fields},
 	}
 
-	basicPrinter := TextPrinter{PrintTime: false, PrintLevel: true}
-
 	for _, tc := range cases {
 		t.Run(tc.Name+".buf", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(Config{Writer: &buf, UseColor: false}, &basicPrinter)
+			log := NewBuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf", buf.Bytes())
 		})
 		t.Run(tc.Name+".buf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(Config{Writer: &buf, UseColor: true}, &basicPrinter)
+			log := NewBuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf.color", buf.Bytes())
@@ -73,19 +71,17 @@ func Test_UnbufferedLogger(t *testing.T) {
 		{"fields", fields},
 	}
 
-	basicPrinter := TextPrinter{PrintTime: false, PrintLevel: true}
-
 	for _, tc := range cases {
 		t.Run(tc.Name+".unbuf", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(Config{Writer: &buf, UseColor: false}, &basicPrinter)
+			log := NewUnbuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf", buf.Bytes())
 		})
 		t.Run(tc.Name+".unbuf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(Config{Writer: &buf, UseColor: true}, &basicPrinter)
+			log := NewUnbuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.color", buf.Bytes())
@@ -105,19 +101,17 @@ func Test_SwapMessageAndFields(t *testing.T) {
 		{"fields", fields},
 	}
 
-	swapPrinter := TextPrinter{PrintTime: false, PrintLevel: true, SwapFieldsAndMessage: true}
-
 	for _, tc := range cases {
 		t.Run(tc.Name+".unbuf.swap", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(Config{Writer: &buf, UseColor: false}, &swapPrinter)
+			log := NewUnbuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true, SwapFieldsAndMessage: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap", buf.Bytes())
 		})
 		t.Run(tc.Name+".unbuf.swap.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(Config{Writer: &buf, UseColor: true}, &swapPrinter)
+			log := NewUnbuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true, SwapFieldsAndMessage: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap.color", buf.Bytes())
@@ -140,8 +134,7 @@ func Test_JSONPrinter(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".json", func(t *testing.T) {
 			var buf bytes.Buffer
-			cfg := Config{Writer: &buf, UseColor: false}
-			l := NewUnbuffered(cfg, &JSONPrinter{TimeOverride: time.Date(2019, 9, 10, 21, 44, 00, 00, time.UTC)})
+			l := NewUnbuffered(&buf, &JSONPrinter{TimeOverride: time.Date(2019, 9, 10, 21, 44, 00, 00, time.UTC)})
 			tc.DoWork(l)
 			l.Close()
 			AssertGolden(t, tc.Name+".json", buf.Bytes())
@@ -186,9 +179,9 @@ func Test_TeeLogger(t *testing.T) {
 		var buf bytes.Buffer
 		var log Logger
 		if buffered {
-			log = NewBuffered(Config{Writer: &buf, UseColor: false}, &basicPrinter)
+			log = NewBuffered(&buf, &basicPrinter)
 		} else {
-			log = NewUnbuffered(Config{Writer: &buf, UseColor: false}, &basicPrinter)
+			log = NewUnbuffered(&buf, &basicPrinter)
 		}
 		doWork(log)
 		log.Close()
@@ -197,11 +190,10 @@ func Test_TeeLogger(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name+".tee", func(t *testing.T) {
-			buf1 := &bytes.Buffer{}
-			buf2 := &bytes.Buffer{}
+			var buf1, buf2 bytes.Buffer
 			tee := &TeeLogger{
-				Primary:   NewBuffered(Config{Writer: buf1, UseColor: false}, &basicPrinter),
-				Secondary: NewUnbuffered(Config{Writer: buf2, UseColor: false}, &basicPrinter),
+				Primary:   NewBuffered(&buf1, &basicPrinter),
+				Secondary: NewUnbuffered(&buf2, &basicPrinter),
 			}
 			tc.DoWork(tee)
 			tee.Close()
@@ -384,12 +376,8 @@ func fields(l Logger) {
 }
 
 func Test_Anchor_Close(t *testing.T) {
-	buf := &bytes.Buffer{}
-	cfg := Config{
-		Writer:   buf,
-		UseColor: false,
-	}
-	log := NewBuffered(cfg, &TextPrinter{})
+	var buf bytes.Buffer
+	log := NewBuffered(&buf, &TextPrinter{})
 	fl := AddAnchor(log)
 
 	// Anchor panics if you call close (you should only call the parent's close)
@@ -418,7 +406,7 @@ func Test_AssertInterfaces(t *testing.T) {
 		}
 	}
 
-	bl := NewBuffered(Config{Writer: &bytes.Buffer{}}, &TextPrinter{})
+	bl := NewBuffered(&bytes.Buffer{}, &TextPrinter{})
 	fnAssertAdder(t, bl)
 	blfl := AddAnchor(bl)
 	fnAssertRemover(t, blfl)

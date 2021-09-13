@@ -2,6 +2,7 @@ package frog
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 	"sync"
@@ -12,7 +13,7 @@ import (
 
 type Buffered struct {
 	minLevel Level
-	cfg      Config
+	writer   io.Writer
 	prn      Printer
 	ch       chan bufmsg
 	wg       sync.WaitGroup
@@ -37,17 +38,17 @@ type bufmsg struct {
 	Msg   string
 }
 
-func NewBuffered(cfg Config, prn Printer) *Buffered {
+func NewBuffered(writer io.Writer, prn Printer) *Buffered {
 	l := &Buffered{
 		minLevel: Info,
-		cfg:      cfg,
+		writer:   writer,
 		prn:      prn,
 		ch:       make(chan bufmsg),
 		wg:       sync.WaitGroup{},
 	}
 
 	l.wg.Add(1)
-	if l.cfg.Writer == nil {
+	if l.writer == nil {
 		return nil
 	}
 	go func() {
@@ -119,7 +120,7 @@ func (l *Buffered) processor() {
 		switch msg.Type {
 		case mtAddLine:
 			// ensure terminal scrolls down if needed to add a new line
-			fmt.Fprint(l.cfg.Writer, "\n")
+			fmt.Fprint(l.writer, "\n")
 
 			// figure out where this new line goes
 			idx := 0
@@ -137,11 +138,11 @@ func (l *Buffered) processor() {
 
 			// if inserting has bumped any lines down, re-draw those lines in their new home
 			if idx < len(anchoredLines)-1 {
-				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(len(anchoredLines)-(idx+1)))
+				fmt.Fprint(l.writer, ansi.PrevLine(len(anchoredLines)-(idx+1)))
 				for i := idx + 1; i < len(anchoredLines); i++ {
-					fmt.Fprint(l.cfg.Writer, anchoredLines[i].str)
-					fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
-					fmt.Fprint(l.cfg.Writer, ansi.NextLine(1))
+					fmt.Fprint(l.writer, anchoredLines[i].str)
+					fmt.Fprint(l.writer, ansi.EraseEOL)
+					fmt.Fprint(l.writer, ansi.NextLine(1))
 				}
 			}
 
@@ -154,18 +155,18 @@ func (l *Buffered) processor() {
 			anchoredLines = anchoredLines[:len(anchoredLines)-1]
 
 			// redraw/erase bottom lines as needed
-			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(anchoredLines)-idx))
+			fmt.Fprint(l.writer, ansi.PrevLine(1+len(anchoredLines)-idx))
 			for i := idx; i < len(anchoredLines); i++ {
-				fmt.Fprint(l.cfg.Writer, anchoredLines[i].str)
-				fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
-				fmt.Fprint(l.cfg.Writer, ansi.NextLine(1))
+				fmt.Fprint(l.writer, anchoredLines[i].str)
+				fmt.Fprint(l.writer, ansi.EraseEOL)
+				fmt.Fprint(l.writer, ansi.NextLine(1))
 			}
-			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
+			fmt.Fprint(l.writer, ansi.EraseEOL)
 
 		case mtPrint:
 			// if we aren't using anchored lines, then just print normally
 			if len(anchoredLines) == 0 {
-				fmt.Fprintf(l.cfg.Writer, "%s\n", msg.Msg)
+				fmt.Fprintf(l.writer, "%s\n", msg.Msg)
 				continue
 			}
 
@@ -173,12 +174,12 @@ func (l *Buffered) processor() {
 			// the anchored lines down, and draw this line above them.
 			// If this does have an anchored line, but it is not Transient level, then also print it above.
 			if msg.Line <= 0 || msg.Level > Transient {
-				fmt.Fprint(l.cfg.Writer, "\n")
-				fmt.Fprint(l.cfg.Writer, ansi.PrevLine(1+len(anchoredLines)))
-				fmt.Fprintf(l.cfg.Writer, "%s%s\n", msg.Msg, ansi.EraseEOL)
+				fmt.Fprint(l.writer, "\n")
+				fmt.Fprint(l.writer, ansi.PrevLine(1+len(anchoredLines)))
+				fmt.Fprintf(l.writer, "%s%s\n", msg.Msg, ansi.EraseEOL)
 
 				for _, v := range anchoredLines {
-					fmt.Fprintf(l.cfg.Writer, "%s%s\n", v.str, ansi.EraseEOL)
+					fmt.Fprintf(l.writer, "%s%s\n", v.str, ansi.EraseEOL)
 				}
 
 				// if we aren't using anchored lines, then we're done here...
@@ -192,10 +193,10 @@ func (l *Buffered) processor() {
 			idx := fnMustFindIdx(msg.Line)
 			anchoredLines[idx].str = msg.Msg
 			offset := int(len(anchoredLines) - idx)
-			fmt.Fprint(l.cfg.Writer, ansi.PrevLine(offset))
-			fmt.Fprint(l.cfg.Writer, msg.Msg)
-			fmt.Fprint(l.cfg.Writer, ansi.EraseEOL)
-			fmt.Fprint(l.cfg.Writer, ansi.NextLine(offset))
+			fmt.Fprint(l.writer, ansi.PrevLine(offset))
+			fmt.Fprint(l.writer, msg.Msg)
+			fmt.Fprint(l.writer, ansi.EraseEOL)
+			fmt.Fprint(l.writer, ansi.NextLine(offset))
 
 		default:
 		}
@@ -223,7 +224,7 @@ func (l *Buffered) logImpl(prn Printer, anchoredLine int32, level Level, format 
 	l.ch <- bufmsg{
 		Line:  anchoredLine,
 		Level: level,
-		Msg:   prn.Render(l.cfg.UseColor, level, format, fields...),
+		Msg:   prn.Render(level, format, fields...),
 	}
 	if level == Fatal {
 		// we can't just close this channel, because another thread may still be trying to write to it

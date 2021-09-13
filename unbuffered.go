@@ -2,18 +2,19 @@ package frog
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
 type Unbuffered struct {
-	cfg      Config
+	writer   io.Writer
 	prn      Printer
 	minLevel Level
 }
 
-func NewUnbuffered(cfg Config, prn Printer) *Unbuffered {
+func NewUnbuffered(writer io.Writer, prn Printer) *Unbuffered {
 	return &Unbuffered{
-		cfg:      cfg,
+		writer:   writer,
 		prn:      prn,
 		minLevel: Info,
 	}
@@ -31,7 +32,7 @@ func (l *Unbuffered) Log(level Level, msg string, fields ...Fielder) Logger {
 	if level < l.minLevel {
 		return l
 	}
-	fmt.Fprintf(l.cfg.Writer, "%s\n", l.prn.Render(l.cfg.UseColor, level, msg, fields...))
+	fmt.Fprintf(l.writer, "%s\n", l.prn.Render(level, msg, fields...))
 	if level == Fatal {
 		os.Exit(-1)
 	}
