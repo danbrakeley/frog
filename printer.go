@@ -55,18 +55,20 @@ type TextPrinter struct {
 }
 
 func (p *TextPrinter) SetOptions(opts ...PrinterOption) Printer {
-	for _, opt := range opts {
-		switch opt.Value() {
+	for _, o := range opts {
+		switch ot := o.(type) {
 		case poPalette:
-			p.Palette = Palette(opt.AsInt())
-		case poShowTime:
-			p.PrintTime = opt.AsBool()
-		case poShowLevel:
-			p.PrintLevel = opt.AsBool()
+			p.Palette = ot.Palette
+		case poTime:
+			p.PrintTime = ot.Visible
+		case poLevel:
+			p.PrintLevel = ot.Visible
 		case poFieldIndent:
-			p.FieldIndent = opt.AsInt()
-		case poMessageLast:
-			p.PrintMessageLast = opt.AsBool()
+			p.FieldIndent = ot.Indent
+		case poMsgLeftFieldsRight:
+			p.PrintMessageLast = false
+		case poFieldsLeftMsgRight:
+			p.PrintMessageLast = true
 		}
 	}
 	return p

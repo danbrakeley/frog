@@ -26,11 +26,16 @@ func main() {
 		style = frog.JSON
 	}
 
+	var order frog.PrinterOption = frog.POMsgLeftFieldsRight
+	if *swap {
+		order = frog.POFieldsLeftMsgRight
+	}
+
 	log := frog.New(style,
 		frog.POFieldIndent(40),
-		frog.POShowTime(!*noTime),
-		frog.POShowLevel(!*noLevel),
-		frog.POMessageLast(!*swap),
+		frog.POTime(!*noTime),
+		frog.POLevel(!*noLevel),
+		order,
 	)
 	defer log.Close()
 
