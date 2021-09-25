@@ -3,7 +3,6 @@ package frog
 import (
 	"fmt"
 	"io"
-	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -26,7 +25,6 @@ type msgType byte
 
 const (
 	mtPrint      msgType = iota // string to print
-	mtFatal                     // stop processor without closing channel
 	mtAddLine                   // add an anchored line
 	mtRemoveLine                // remove an acnhored line
 )
@@ -57,6 +55,10 @@ func NewBuffered(writer io.Writer, prn Printer) *Buffered {
 	}()
 
 	return l
+}
+
+func (l *Buffered) Printer() Printer {
+	return l.prn
 }
 
 // Close should be called before the app exits, to ensure any buffered output is flushed.
@@ -113,7 +115,7 @@ func (l *Buffered) processor() {
 
 	for {
 		msg, ok := <-l.ch
-		if !ok || msg.Type == mtFatal {
+		if !ok {
 			return
 		}
 
@@ -226,12 +228,6 @@ func (l *Buffered) logImpl(prn Printer, anchoredLine int32, level Level, format 
 		Level: level,
 		Msg:   prn.Render(level, format, fields...),
 	}
-	if level == Fatal {
-		// we can't just close this channel, because another thread may still be trying to write to it
-		l.ch <- bufmsg{Type: mtFatal}
-		l.wg.Wait()
-		os.Exit(-1)
-	}
 }
 
 func (l *Buffered) Transient(format string, a ...Fielder) Logger {
@@ -257,8 +253,4 @@ func (l *Buffered) Warning(format string, a ...Fielder) Logger {
 func (l *Buffered) Error(format string, a ...Fielder) Logger {
 	l.Log(Error, format, a...)
 	return l
-}
-
-func (l *Buffered) Fatal(format string, a ...Fielder) {
-	l.Log(Fatal, format, a...)
 }

@@ -12,13 +12,11 @@ type Logger interface {
 	Log(level Level, format string, a ...Fielder) Logger
 
 	// Transient et al are just shortcuts for calling Log with specific levels.
-	// Note that Fatal will never return, as it flushes any buffers then calls os.Exit(-1).
 	Transient(format string, a ...Fielder) Logger
 	Verbose(format string, a ...Fielder) Logger
 	Info(format string, a ...Fielder) Logger
 	Warning(format string, a ...Fielder) Logger
 	Error(format string, a ...Fielder) Logger
-	Fatal(format string, a ...Fielder)
 }
 
 // ChildLogger is the interface for loggers that feed back to a parent.
@@ -37,4 +35,9 @@ type AnchorAdder interface {
 // in order for the anchor to be removed before app end.
 type AnchorRemover interface {
 	RemoveAnchor()
+}
+
+// Printerer is an interface that exposes one's Printer
+type Printerer interface {
+	Printer() Printer
 }

@@ -8,7 +8,6 @@ const (
 	Info                   // normal message
 	Warning                // something unusual happened
 	Error                  // something bad happened
-	Fatal                  // stop everything right now
 
 	levelMax
 	levelMin Level = 0
@@ -26,8 +25,6 @@ func (l Level) String() string {
 		return "warning"
 	case Error:
 		return "error"
-	case Fatal:
-		return "fatal"
 	}
 	return ""
 }

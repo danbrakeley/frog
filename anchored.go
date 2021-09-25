@@ -88,7 +88,3 @@ func (l *AnchoredLogger) Error(msg string, fields ...Fielder) Logger {
 	l.Log(Error, msg, fields...)
 	return l
 }
-
-func (l *AnchoredLogger) Fatal(msg string, fields ...Fielder) {
-	l.Log(Fatal, msg, fields...)
-}

@@ -57,21 +57,10 @@ level | description
 `Info` | Normal log lines (usually enabled).
 `Warning` | Unusual events.
 `Error` | Something went wrong.
-`Fatal` | Similar to Error, but also ends the process.
 
 ## TODO
 
-- ✓ ~~Write to two Loggers simultaneously~~
-- ✓ ~~JSON Printer~~
-- ✓ ~~rework how anchored lines are released~~
-- ✓ ~~structured logging~~
-- ✓ ~~NullLogger for when you want to pass a frog.Logger that nops~~
-- ✓ ~~add options to frog.New() for color, timestamps, etc~~
-- ✓ ~~TextLogger has min indent (greater than normal indent) for the first field~~
-- ✓ ~~use colors to make difference betwen fields and msg more obvious~~
-- ✓ ~~Rename fixed to anchor/anchored~~
-- Lock in fields via child loggers
-- FilterLogger which can dynamically switch between logging and nopping
+- create a Logger with static fields
 - go doc pass
-- run it on other platforms
+- test on linux and mac
 - make some benchmarks, maybe do a pass on performance

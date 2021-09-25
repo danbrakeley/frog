@@ -3,7 +3,6 @@ package frog
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 type Unbuffered struct {
@@ -33,9 +32,6 @@ func (l *Unbuffered) Log(level Level, msg string, fields ...Fielder) Logger {
 		return l
 	}
 	fmt.Fprintf(l.writer, "%s\n", l.prn.Render(level, msg, fields...))
-	if level == Fatal {
-		os.Exit(-1)
-	}
 	return l
 }
 
@@ -62,8 +58,4 @@ func (l *Unbuffered) Warning(msg string, fields ...Fielder) Logger {
 func (l *Unbuffered) Error(msg string, fields ...Fielder) Logger {
 	l.Log(Error, msg, fields...)
 	return l
-}
-
-func (l *Unbuffered) Fatal(msg string, fields ...Fielder) {
-	l.Log(Fatal, msg, fields...)
 }

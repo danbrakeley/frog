@@ -90,7 +90,6 @@ var colorsMain = [levelMax][2]string{
 	{ansi.FgWhite, ansi.FgLightGray},    // Info
 	{ansi.FgYellow, ansi.FgDarkYellow},  // Warning
 	{ansi.FgRed, ansi.FgDarkRed},        // Error
-	{ansi.FgRed, ansi.FgDarkRed},        // Fatal
 }
 
 var colorsDark = [levelMax][2]string{
@@ -99,7 +98,6 @@ var colorsDark = [levelMax][2]string{
 	{ansi.FgDarkGray, ansi.FgDarkGray}, // Info
 	{ansi.FgDarkGray, ansi.FgDarkGray}, // Warning
 	{ansi.FgDarkGray, ansi.FgDarkGray}, // Error
-	{ansi.FgDarkGray, ansi.FgDarkGray}, // Fatal
 }
 
 func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string {
@@ -146,8 +144,6 @@ func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string 
 			sb.WriteString("[WRN] ")
 		case Error:
 			sb.WriteString("[ERR] ")
-		case Fatal:
-			sb.WriteString("[!!!] ")
 		default:
 			sb.WriteString("[???] ")
 		}

@@ -59,8 +59,3 @@ func (l *TeeLogger) Error(msg string, fields ...Fielder) Logger {
 	l.Log(Error, msg, fields...)
 	return l
 }
-
-// Fatal calls Fatal on primary, then secondary (note that Secondary might never be called if the primary halts the app)
-func (l *TeeLogger) Fatal(msg string, fields ...Fielder) {
-	l.Log(Fatal, msg, fields...)
-}

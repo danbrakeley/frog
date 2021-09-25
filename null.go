@@ -33,6 +33,3 @@ func (n *NullLogger) Warning(format string, a ...Fielder) Logger {
 func (n *NullLogger) Error(format string, a ...Fielder) Logger {
 	return n
 }
-
-func (n *NullLogger) Fatal(format string, a ...Fielder) {
-}
