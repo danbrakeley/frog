@@ -67,6 +67,7 @@ func (l *Buffered) Close() {
 	isClosed := atomic.AddInt32(&l.isClosed, 1)
 	// protect against multiple calls to close
 	if isClosed != 1 {
+		l.wg.Wait()
 		return
 	}
 
