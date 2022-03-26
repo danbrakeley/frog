@@ -1,0 +1,5 @@
+[nfo] before adding anchor or fields
+[nfo] non-transient anchored line with fields      static=true
+[nfo] just anchor
+[WRN] now that the anchor is gone, lf should pass to the parent   static=true
+[nfo] after removing anchored logger

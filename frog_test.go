@@ -39,6 +39,8 @@ func Test_BufferedLogger(t *testing.T) {
 		{"anchors-movement", moveBetweenAnchors},
 		{"anchors-add-remove", addAndRemoveAnchors},
 		{"fields", fields},
+		{"with-fields-and-opts", withFieldsAndOptions},
+		{"with-fields-and-anchors", withFieldsAndAnchors},
 	}
 
 	for _, tc := range cases {
@@ -69,6 +71,8 @@ func Test_UnbufferedLogger(t *testing.T) {
 		{"anchors-movement", moveBetweenAnchors},
 		{"anchors-add-remove", addAndRemoveAnchors},
 		{"fields", fields},
+		{"with-fields-and-opts", withFieldsAndOptions},
+		{"with-fields-and-anchors", withFieldsAndAnchors},
 	}
 
 	for _, tc := range cases {
@@ -129,6 +133,8 @@ func Test_JSONPrinter(t *testing.T) {
 		{"anchors-movement", moveBetweenAnchors},
 		{"anchors-add-remove", addAndRemoveAnchors},
 		{"fields", fields},
+		{"with-fields-and-opts", withFieldsAndOptions},
+		{"with-fields-and-anchors", withFieldsAndAnchors},
 	}
 
 	for _, tc := range cases {
@@ -170,6 +176,8 @@ func Test_TeeLogger(t *testing.T) {
 		{"anchors-movement", moveBetweenAnchors},
 		{"anchors-add-remove", addAndRemoveAnchors},
 		{"fields", fields},
+		{"with-fields-and-opts", withFieldsAndOptions},
+		{"with-fields-and-anchors", withFieldsAndAnchors},
 	}
 
 	basicPrinter := TextPrinter{PrintTime: false, PrintLevel: true}
@@ -373,6 +381,37 @@ func fields(l Logger) {
 	// uint64
 	l.Info("uint64", Uint64("max", uint64(18446744073709551615)))
 	l.Warning("uint64", Uint64("min", uint64(0)))
+}
+
+func withFieldsAndOptions(l Logger) {
+	lf := WithFields(l, String("foo", "bar"))
+
+	lf.Info("customized logger", Int("n", 100))
+	lf.Warning("customized logger with conflicting field names", String("foo", "custom"))
+	lf.Error("customized logger with and without conflicting field names", String("foo", "custom"), Int("n", 200))
+
+	l.Verbose("original logger does not include added fields")
+
+	lf = WithOptionsAndFields(l, []PrinterOption{POPalette(PalDark)}, []Fielder{String("palette", "dark")})
+
+	lf.Info("customized logger", Int("n", 100))
+	lf.Log(Warning, []PrinterOption{POPalette(PalColor)}, "local option overrides customized option", []Fielder{String("palette", "color")})
+
+	l.Verbose("original logger does not include added fields or options")
+}
+
+func withFieldsAndAnchors(l Logger) {
+	l.Info("before adding anchor or fields")
+	la := AddAnchor(l)
+	lf := WithFields(la, Bool("static", true))
+	lf.Transient("transient anchored line with fields")
+	lf.Info("non-transient anchored line with fields")
+	la.Info("just anchor")
+	l.Verbose("main logger should still have no fields")
+	la.Transient("transient anchored line without fields")
+	RemoveAnchor(la)
+	lf.Warning("now that the anchor is gone, lf should pass to the parent")
+	l.Info("after removing anchored logger")
 }
 
 func Test_Anchor_Close(t *testing.T) {

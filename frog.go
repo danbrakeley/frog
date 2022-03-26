@@ -95,3 +95,18 @@ func ParentOrSelf(log Logger) Logger {
 	}
 	return parent
 }
+
+// WithFields creates a new Logger that will always include the specified fields
+func WithFields(log Logger, fields ...Fielder) Logger {
+	return newCustomizerLogger(log, nil, fields)
+}
+
+// WithOptions creates a new Logger that will always include the specified fields
+func WithOptions(log Logger, opts ...PrinterOption) Logger {
+	return newCustomizerLogger(log, opts, nil)
+}
+
+// WithOptionsAndFields creates a new Logger that will always include the specified fields
+func WithOptionsAndFields(log Logger, opts []PrinterOption, fields []Fielder) Logger {
+	return newCustomizerLogger(log, opts, fields)
+}

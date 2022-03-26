@@ -1,0 +1,5 @@
+[37m[nfo] [97mcustomized logger   [37mfoo=[97mbar [37mn=[97m100[0m
+[33m[WRN] [93mcustomized logger with conflicting field names    [33mfoo=[93mbar [33mfoo=[93mcustom[0m
+[31m[ERR] [91mcustomized logger with and without conflicting field names       [31mfoo=[91mbar [31mfoo=[91mcustom [31mn=[91m200[0m
+[90m[nfo] [90mcustomized logger   [90mpalette=[90mdark [90mn=[90m100[0m
+[33m[WRN] [93mlocal option overrides customized option     [33mpalette=[93mdark [33mpalette=[93mcolor[0m

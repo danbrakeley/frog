@@ -16,7 +16,7 @@ func sleep(ms int) {
 func main() {
 	flag.Parse()
 
-	log := frog.New(frog.Auto, frog.POPalette(frog.PalDark))
+	log := frog.New(frog.Auto)
 	defer log.Close()
 
 	threads := 3
@@ -26,9 +26,10 @@ func main() {
 	for i := 0; i < threads; i++ {
 		n := i
 		anchored := frog.AddAnchor(log)
+		dark := frog.WithOptions(anchored, frog.POPalette(frog.PalDark))
 		go func() {
-			runProcess(anchored, n)
-			anchored.Info("thread finished", frog.Int("thread", n))
+			runProcess(dark, n)
+			dark.Info("thread finished", frog.Int("thread", n))
 			frog.RemoveAnchor(anchored)
 			wg.Done()
 		}()
@@ -48,6 +49,7 @@ func main() {
 }
 
 func runProcess(log frog.Logger, n int) {
+	log.Info("thread started", frog.Int("thread", n))
 	for j := 0; j <= 100; j++ {
 		log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
 		time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)

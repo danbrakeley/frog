@@ -60,7 +60,21 @@ level | description
 
 ## TODO
 
-- create a Logger with static fields
 - go doc pass
 - test on linux and mac
 - make some benchmarks, maybe do a pass on performance
+
+## Known Issues
+
+- A single log line will print out all given fields, even if multiple fields use the same name. When outputting JSON, this can result in a JSON object that has multiple fields with the same name. This is not necessarily considered invalid, but it can result in ambiguous behavior.
+  - Frog will output the field names in the same order as they are passed to Log/Transient/Verbose/Info/Warning/Error (even when outputting JSON).
+  - When there are parent/child relationships, the outermost parent adds their fields first, then the next outermost parent, etc.
+
+## Release Notes
+
+### 0.8.0 (in development)
+
+- Re-worked printer options to be algebraic data types (see printeroptions.go and printer.go)
+- Allow overriding printer options per log line (see changes to the Printer's `Render` method and Logger's `Log` method).
+- `frog.WithFields(parent, fields...)` allows creating a logger that is a pass-through to `parent`, but always adds the specified fields to each log line.
+- `frog.WithPrinterOptions(parent, opts...)` allows creating a logger is a pass-through to `parent`, but always sets the specified PrinterOptions on each log line.

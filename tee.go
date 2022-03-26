@@ -29,33 +29,33 @@ func (l *TeeLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *TeeLogger) Log(level Level, msg string, fields ...Fielder) Logger {
-	l.Primary.Log(level, msg, fields...)
-	l.Secondary.Log(level, msg, fields...)
+func (l *TeeLogger) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
+	l.Primary.Log(level, opts, msg, fields)
+	l.Secondary.Log(level, opts, msg, fields)
 	return l
 }
 
 func (l *TeeLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.Log(Transient, msg, fields...)
+	l.Log(Transient, nil, msg, fields)
 	return l
 }
 
 func (l *TeeLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.Log(Verbose, msg, fields...)
+	l.Log(Verbose, nil, msg, fields)
 	return l
 }
 
 func (l *TeeLogger) Info(msg string, fields ...Fielder) Logger {
-	l.Log(Info, msg, fields...)
+	l.Log(Info, nil, msg, fields)
 	return l
 }
 
 func (l *TeeLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.Log(Warning, msg, fields...)
+	l.Log(Warning, nil, msg, fields)
 	return l
 }
 
 func (l *TeeLogger) Error(msg string, fields ...Fielder) Logger {
-	l.Log(Error, msg, fields...)
+	l.Log(Error, nil, msg, fields)
 	return l
 }

@@ -9,14 +9,14 @@ type Logger interface {
 	SetMinLevel(level Level) Logger
 
 	// Log is how all log lines are added.
-	Log(level Level, format string, a ...Fielder) Logger
+	Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger
 
 	// Transient et al are just shortcuts for calling Log with specific levels.
-	Transient(format string, a ...Fielder) Logger
-	Verbose(format string, a ...Fielder) Logger
-	Info(format string, a ...Fielder) Logger
-	Warning(format string, a ...Fielder) Logger
-	Error(format string, a ...Fielder) Logger
+	Transient(msg string, fields ...Fielder) Logger
+	Verbose(msg string, fields ...Fielder) Logger
+	Info(msg string, fields ...Fielder) Logger
+	Warning(msg string, fields ...Fielder) Logger
+	Error(msg string, fields ...Fielder) Logger
 }
 
 // ChildLogger is the interface for loggers that feed back to a parent.

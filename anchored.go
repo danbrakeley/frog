@@ -48,43 +48,43 @@ func (l *AnchoredLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *AnchoredLogger) Log(level Level, msg string, fields ...Fielder) Logger {
+func (l *AnchoredLogger) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
 	l.mutex.RLock()
 	isClosed := l.fnOnClose == nil
 	l.mutex.RUnlock()
 
 	// the parent can handle non-Transient lines
 	if isClosed || level != Transient {
-		l.parent.Log(level, msg, fields...)
+		l.parent.Log(level, opts, msg, fields)
 		return l
 	}
 
 	// if we really do have an anchored line we want to print, then go straight to the source
-	l.parent.logImpl(l.prn, l.line, level, msg, fields...)
+	l.parent.logImpl(l.prn, opts, l.line, level, msg, fields)
 	return l
 }
 
 func (l *AnchoredLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.Log(Transient, msg, fields...)
+	l.Log(Transient, nil, msg, fields)
 	return l
 }
 
 func (l *AnchoredLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.Log(Verbose, msg, fields...)
+	l.Log(Verbose, nil, msg, fields)
 	return l
 }
 
 func (l *AnchoredLogger) Info(msg string, fields ...Fielder) Logger {
-	l.Log(Info, msg, fields...)
+	l.Log(Info, nil, msg, fields)
 	return l
 }
 
 func (l *AnchoredLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.Log(Warning, msg, fields...)
+	l.Log(Warning, nil, msg, fields)
 	return l
 }
 
 func (l *AnchoredLogger) Error(msg string, fields ...Fielder) Logger {
-	l.Log(Error, msg, fields...)
+	l.Log(Error, nil, msg, fields)
 	return l
 }

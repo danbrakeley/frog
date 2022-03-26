@@ -214,44 +214,44 @@ func (l *Buffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Buffered) Log(level Level, format string, fields ...Fielder) Logger {
+func (l *Buffered) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
 	if level < l.minLevel {
 		return l
 	}
-	l.logImpl(l.prn, 0, level, format, fields...)
+	l.logImpl(l.prn, opts, 0, level, msg, fields)
 	return l
 }
 
 // logImpl is only called if the line will be shown, regardless of level, line, etc
-func (l *Buffered) logImpl(prn Printer, anchoredLine int32, level Level, format string, fields ...Fielder) {
+func (l *Buffered) logImpl(prn Printer, opts []PrinterOption, anchoredLine int32, level Level, format string, fields []Fielder) {
 	l.ch <- bufmsg{
 		Line:  anchoredLine,
 		Level: level,
-		Msg:   prn.Render(level, format, fields...),
+		Msg:   prn.Render(level, opts, format, fields),
 	}
 }
 
-func (l *Buffered) Transient(format string, a ...Fielder) Logger {
-	l.Log(Transient, format, a...)
+func (l *Buffered) Transient(msg string, fields ...Fielder) Logger {
+	l.Log(Transient, nil, msg, fields)
 	return l
 }
 
-func (l *Buffered) Verbose(format string, a ...Fielder) Logger {
-	l.Log(Verbose, format, a...)
+func (l *Buffered) Verbose(msg string, fields ...Fielder) Logger {
+	l.Log(Verbose, nil, msg, fields)
 	return l
 }
 
-func (l *Buffered) Info(format string, a ...Fielder) Logger {
-	l.Log(Info, format, a...)
+func (l *Buffered) Info(msg string, fields ...Fielder) Logger {
+	l.Log(Info, nil, msg, fields)
 	return l
 }
 
-func (l *Buffered) Warning(format string, a ...Fielder) Logger {
-	l.Log(Warning, format, a...)
+func (l *Buffered) Warning(msg string, fields ...Fielder) Logger {
+	l.Log(Warning, nil, msg, fields)
 	return l
 }
 
-func (l *Buffered) Error(format string, a ...Fielder) Logger {
-	l.Log(Error, format, a...)
+func (l *Buffered) Error(msg string, fields ...Fielder) Logger {
+	l.Log(Error, nil, msg, fields)
 	return l
 }

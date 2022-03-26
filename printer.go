@@ -26,7 +26,7 @@ const (
 )
 
 type Printer interface {
-	Render(Level, string, ...Fielder) string
+	Render(Level, []PrinterOption, string, []Fielder) string
 	SetOptions(...PrinterOption) Printer
 }
 
@@ -100,7 +100,15 @@ var colorsDark = [levelMax][2]string{
 	{ansi.FgDarkGray, ansi.FgDarkGray}, // Error
 }
 
-func (p *TextPrinter) Render(level Level, msg string, fields ...Fielder) string {
+func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Fielder) string {
+	// To override printer options just for this one line, make a copy of the existing printer settings,
+	// then set our one-off options on that copy, then finally call Render on the altered copy.
+	if len(opts) > 0 {
+		tmp := *p
+		tmp.SetOptions(opts...)
+		return tmp.Render(level, nil, msg, fields)
+	}
+
 	var useColor bool
 	var colorPrimary, colorSecondary string
 
@@ -244,7 +252,7 @@ func (p *JSONPrinter) SetOptions(opts ...PrinterOption) Printer {
 	return p
 }
 
-func (p *JSONPrinter) Render(level Level, msg string, fields ...Fielder) string {
+func (p *JSONPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Fielder) string {
 	var stamp time.Time
 	if !p.TimeOverride.IsZero() {
 		stamp = p.TimeOverride

@@ -10,7 +10,7 @@ func (n *NullLogger) SetMinLevel(level Level) Logger {
 	return n
 }
 
-func (n *NullLogger) Log(level Level, format string, a ...Fielder) Logger {
+func (n *NullLogger) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
 	return n
 }
 
