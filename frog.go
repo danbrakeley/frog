@@ -41,7 +41,7 @@ func New(t NewLogger, opts ...PrinterOption) Logger {
 		prn := TextPrinter{Palette: PalColor, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
 		return NewBuffered(os.Stdout, prn.SetOptions(opts...))
 	case Basic:
-		prn := TextPrinter{Palette: PalColor, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
+		prn := TextPrinter{Palette: PalNone, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
 		return NewUnbuffered(os.Stdout, prn.SetOptions(opts...))
 	case JSON:
 		return NewUnbuffered(os.Stdout, &JSONPrinter{})
