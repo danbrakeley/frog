@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/danbrakeley/frog/ansi"
+	"github.com/danbrakeley/frog/internal/terminal"
 )
 
 type Buffered struct {
@@ -36,7 +37,7 @@ type bufmsg struct {
 	Msg   string
 }
 
-func NewBuffered(writer io.Writer, prn Printer) *Buffered {
+func NewBuffered(writer io.Writer, hasTerminal bool, prn Printer) *Buffered {
 	l := &Buffered{
 		minLevel: Info,
 		writer:   writer,
@@ -50,6 +51,13 @@ func NewBuffered(writer io.Writer, prn Printer) *Buffered {
 		return nil
 	}
 	go func() {
+		if hasTerminal {
+			c, _, err := terminal.GetSize()
+			if err != nil {
+				c = -1
+			}
+			l.prn = l.prn.SetOptions(POTransientLineLength(c))
+		}
 		l.processor()
 		l.wg.Done()
 	}()

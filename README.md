@@ -4,7 +4,7 @@
 
 Frog is a package for logging output.
 
-When connected to a terminal, Frog allows lines to be anchored to the bottom of the output. This allows progress bars and other UX that is only meant for human consumption, which are not included when logging to a file or pipe.
+When connected to a terminal, Frog allows lines to be anchored to the bottom of the output. This allows progress bars and other UX that is only meant for human consumption. When not connected to a terminal, by default these "transient" lines are skipped (can be overridden).
 
 Windows Users: Frog uses ANSI/VT-100 commands to change colors and move the cursor, and for this to display properly, you must be using Windows 10 build 1511 (circa 2016) or newer, or be using a third-party terminal application like ConEmu/Cmdr or mintty. There's no planned supoprt for the native command prompts of earlier versions of Windows.
 
@@ -35,6 +35,7 @@ The quickest way to get started is to create one of the default `Logger`s via a 
   log.Warning("Example warning")
 
   status := frog.AddAnchor(log)
+  defer frog.RemoveAnchor(status)
   for i := 0; i <= 100; i++ {
     status.Transient(" + complete", frog.Int("percent", n))
     time.Sleep(time.Duration(10) * time.Millisecond)
@@ -63,6 +64,7 @@ level | description
 - go doc pass
 - test on linux and mac
 - make some benchmarks, maybe do a pass on performance
+- handle terminal width size changing while an app is running (for anchored lines)
 
 ## Known Issues
 
@@ -72,7 +74,13 @@ level | description
 
 ## Release Notes
 
-### 0.8.0 (in development)
+### 0.8.4
+
+- Handle anchored lines that are longer than the terminal width more gracefully
+  - New behavior is that we detect the terminal width when frog comes up, then crops transient lines to that width
+  - Can be manually set with printer option `POTransientLineLength(len)`
+
+### 0.8.0
 
 - Re-worked printer options to be algebraic data types (see printeroptions.go and printer.go)
 - Allow overriding printer options per log line (see changes to the Printer's `Render` method and Logger's `Log` method).

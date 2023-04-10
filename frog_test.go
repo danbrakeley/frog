@@ -46,17 +46,24 @@ func Test_BufferedLogger(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".buf", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true})
+			log := NewBuffered(&buf, false, &TextPrinter{PrintTime: false, PrintLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf", buf.Bytes())
 		})
 		t.Run(tc.Name+".buf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true})
+			log := NewBuffered(&buf, false, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf.color", buf.Bytes())
+		})
+		t.Run(tc.Name+".buf.term20.color", func(t *testing.T) {
+			var buf bytes.Buffer
+			log := NewBuffered(&buf, false, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true, TransientLineLength: 20})
+			tc.DoWork(log)
+			log.Close()
+			AssertGolden(t, tc.Name+".buf.term20.color", buf.Bytes())
 		})
 	}
 }
@@ -187,7 +194,7 @@ func Test_TeeLogger(t *testing.T) {
 		var buf bytes.Buffer
 		var log Logger
 		if buffered {
-			log = NewBuffered(&buf, &basicPrinter)
+			log = NewBuffered(&buf, false, &basicPrinter)
 		} else {
 			log = NewUnbuffered(&buf, &basicPrinter)
 		}
@@ -200,7 +207,7 @@ func Test_TeeLogger(t *testing.T) {
 		t.Run(tc.Name+".tee", func(t *testing.T) {
 			var buf1, buf2 bytes.Buffer
 			tee := &TeeLogger{
-				Primary:   NewBuffered(&buf1, &basicPrinter),
+				Primary:   NewBuffered(&buf1, false, &basicPrinter),
 				Secondary: NewUnbuffered(&buf2, &basicPrinter),
 			}
 			tc.DoWork(tee)
@@ -416,7 +423,7 @@ func withFieldsAndAnchors(l Logger) {
 
 func Test_Anchor_Close(t *testing.T) {
 	var buf bytes.Buffer
-	log := NewBuffered(&buf, &TextPrinter{})
+	log := NewBuffered(&buf, false, &TextPrinter{})
 	fl := AddAnchor(log)
 
 	// Anchor panics if you call close (you should only call the parent's close)
@@ -445,7 +452,7 @@ func Test_AssertInterfaces(t *testing.T) {
 		}
 	}
 
-	bl := NewBuffered(&bytes.Buffer{}, &TextPrinter{})
+	bl := NewBuffered(&bytes.Buffer{}, false, &TextPrinter{})
 	fnAssertAdder(t, bl)
 	blfl := AddAnchor(bl)
 	fnAssertRemover(t, blfl)

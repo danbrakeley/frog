@@ -11,13 +11,15 @@ import (
 // http://www.termsys.demon.co.uk/vtansi.htm
 
 const (
-	Esc = "\u001b"
-	CSI = Esc + "[" // Control Sequence Introducer
+	EscRune = '\u001b'
+	Esc     = string(EscRune)
+	CSI     = Esc + "[" // Control Sequence Introducer
 
 	// Move cursor to screen-relative locations
 
-	TopLeft  = CSI + "H"
-	LeftMost = CSI + "1G" // stays on current line
+	TopLeft     = CSI + "H"
+	LeftMost    = CSI + "1G" // stays on current line
+	BottomRight = CSI + "32767;32767H"
 
 	// Save/Restore cursor position
 
@@ -37,6 +39,10 @@ const (
 
 	ShowCursor = CSI + "?25h"
 	HideCursor = CSI + "?25l"
+
+	// DECXCPR commands
+
+	GetCursorPos = CSI + "6n" // responds with `ESC [ <r> ; <c> R`, where <r> is row and <c> is column
 )
 
 func Up(n int) string {

@@ -32,14 +32,18 @@ func HasTerminal(w io.Writer) bool {
 // Resulting Logger can be modified by including 1 or more NewOpts after the NewLogger type.
 // The caller is responsible for calling Close() when done with the returned Logger.
 func New(t NewLogger, opts ...PrinterOption) Logger {
-	if t == Auto && !HasTerminal(os.Stdout) {
-		t = Basic
+	hasTerminal := false
+	if t == Auto {
+		hasTerminal = HasTerminal(os.Stdout)
+		if !hasTerminal {
+			t = Basic
+		}
 	}
 
 	switch t {
 	case Auto:
 		prn := TextPrinter{Palette: PalColor, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
-		return NewBuffered(os.Stdout, prn.SetOptions(opts...))
+		return NewBuffered(os.Stdout, hasTerminal, prn.SetOptions(opts...))
 	case Basic:
 		prn := TextPrinter{Palette: PalNone, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
 		return NewUnbuffered(os.Stdout, prn.SetOptions(opts...))

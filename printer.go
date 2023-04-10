@@ -34,6 +34,7 @@ type TextPrinter struct {
 	Palette    Palette
 	PrintTime  bool
 	PrintLevel bool
+
 	// FieldIndent controls where the first field begins rendering, compared to the message.
 	// Note that the first field will always be at least 3 spaces from the end of the message,
 	// and always be aligned with an offset that is a multiple of 5
@@ -47,11 +48,17 @@ type TextPrinter struct {
 	//   [nfo] short     fieldIndent=0
 	//   [nfo] sh   fieldIndent=0
 	FieldIndent int
+
 	// PrintMessageLast will cause the message to display after the fields, instead of before
 	// For example:
 	//   [nfo] fieldIndent=40                          short message
 	//   [nfo] fieldIndent=10      something  a long message that overflows the first field indent
 	PrintMessageLast bool
+
+	// TransientLineLength is used to crop anchored lines, to avoid having them overflow into a second line.
+	// A value of 0 means no cropping will occur. If an anchored line ends up being wider than the terminal,
+	// it will wrap, which will throw off the formatting and scramble the output.
+	TransientLineLength int
 }
 
 func (p *TextPrinter) SetOptions(opts ...PrinterOption) Printer {
@@ -69,6 +76,8 @@ func (p *TextPrinter) SetOptions(opts ...PrinterOption) Printer {
 			p.PrintMessageLast = false
 		case poFieldsLeftMsgRight:
 			p.PrintMessageLast = true
+		case poTransientLineLength:
+			p.TransientLineLength = ot.Cols
 		}
 	}
 	return p
@@ -240,7 +249,16 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 		sb.WriteString(ansi.CSI + ansi.Reset + "m")
 	}
 
-	return sb.String()
+	out := sb.String()
+
+	if level == Transient && p.TransientLineLength > 0 {
+		runeCount := len([]rune(out))
+		if runeCount > p.TransientLineLength {
+			out = ansi.CropVisibleRunes(out, p.TransientLineLength)
+		}
+	}
+
+	return out
 }
 
 type JSONPrinter struct {

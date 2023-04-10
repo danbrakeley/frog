@@ -72,3 +72,16 @@ type poFieldsLeftMsgRight struct{}
 
 func (p poFieldsLeftMsgRight) isPrinterOption() {}
 func (p poFieldsLeftMsgRight) String() string   { return "POFieldsLeftMsgRight" }
+
+// Transient Line Length (meant to crop anchored lines so they don't wrap)
+
+func POTransientLineLength(cols int) poTransientLineLength {
+	return poTransientLineLength{Cols: cols}
+}
+
+type poTransientLineLength struct {
+	Cols int
+}
+
+func (p poTransientLineLength) isPrinterOption() {}
+func (p poTransientLineLength) String() string   { return "POTransientLineLength" }
