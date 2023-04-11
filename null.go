@@ -10,8 +10,7 @@ func (n *NullLogger) SetMinLevel(level Level) Logger {
 	return n
 }
 
-func (n *NullLogger) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
-	return n
+func (n *NullLogger) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
 }
 
 func (n *NullLogger) Transient(format string, a ...Fielder) Logger {

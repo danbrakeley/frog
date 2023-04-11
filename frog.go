@@ -54,29 +54,55 @@ func New(t NewLogger, opts ...PrinterOption) Logger {
 	return nil
 }
 
-// AddAnchor adds a new logger on an anchored line, if supported.
+// AddAnchor adds a new logger on an anchored line (if supported).
 // Else, returns passed in Logger.
 func AddAnchor(log Logger) Logger {
-	aa, ok := log.(AnchorAdder)
-	if ok {
-		a := aa.AddAnchor()
-		if a == nil {
-			return log
+	var aa AnchorAdder
+	var ok bool
+
+	// search up the chain of parents for something that supports adding anchors
+	tmp := log
+	for {
+		if tmp == nil {
+			break
 		}
-		return a
+		aa, ok = tmp.(AnchorAdder)
+		if ok {
+			break
+		}
+		tmp = Parent(tmp)
 	}
-	// if we are a child that doesn't create its own anchored lines, then pass up to parent
-	parent := Parent(log)
-	if parent != nil {
-		return AddAnchor(parent)
+
+	// no AnchorAdder, then just return the passed in logger
+	if aa == nil {
+		return log
 	}
-	return log
+
+	alog := aa.AddAnchor(log)
+	if alog == nil {
+		return log
+	}
+	return alog
 }
 
+// RemoveAnchor needs to be passed the logger that was returned by AddAnchor.
+// It can also work by being passed a child.
 func RemoveAnchor(log Logger) {
-	ar, ok := log.(AnchorRemover)
-	if ok {
-		ar.RemoveAnchor()
+	var ar AnchorRemover
+	var ok bool
+
+	// search up the chain of parents for something that supports removing anchors
+	tmp := log
+	for {
+		if tmp == nil {
+			break
+		}
+		ar, ok = tmp.(AnchorRemover)
+		if ok {
+			ar.RemoveAnchor()
+			break
+		}
+		tmp = Parent(tmp)
 	}
 }
 
@@ -88,29 +114,17 @@ func Parent(log Logger) Logger {
 	return child.Parent()
 }
 
-func ParentOrSelf(log Logger) Logger {
-	child, ok := log.(ChildLogger)
-	if !ok {
-		return log
-	}
-	parent := child.Parent()
-	if parent == nil {
-		return log
-	}
-	return parent
-}
-
 // WithFields creates a new Logger that will always include the specified fields
 func WithFields(log Logger, fields ...Fielder) Logger {
 	return newCustomizerLogger(log, nil, fields)
 }
 
-// WithOptions creates a new Logger that will always include the specified fields
+// WithOptions creates a new Logger that will always include the specified options
 func WithOptions(log Logger, opts ...PrinterOption) Logger {
 	return newCustomizerLogger(log, opts, nil)
 }
 
-// WithOptionsAndFields creates a new Logger that will always include the specified fields
+// WithOptionsAndFields creates a new Logger that will always include the specified fields and options
 func WithOptionsAndFields(log Logger, opts []PrinterOption, fields []Fielder) Logger {
 	return newCustomizerLogger(log, opts, fields)
 }

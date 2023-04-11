@@ -27,35 +27,34 @@ func (l *Unbuffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Unbuffered) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
+func (l *Unbuffered) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
 	if level < l.minLevel {
-		return l
+		return
 	}
 	fmt.Fprintf(l.writer, "%s\n", l.prn.Render(level, opts, msg, fields))
-	return l
 }
 
 func (l *Unbuffered) Transient(msg string, fields ...Fielder) Logger {
-	l.Log(Transient, nil, msg, fields)
+	l.LogImpl(0, nil, Transient, msg, fields)
 	return l
 }
 
 func (l *Unbuffered) Verbose(msg string, fields ...Fielder) Logger {
-	l.Log(Verbose, nil, msg, fields)
+	l.LogImpl(0, nil, Verbose, msg, fields)
 	return l
 }
 
 func (l *Unbuffered) Info(msg string, fields ...Fielder) Logger {
-	l.Log(Info, nil, msg, fields)
+	l.LogImpl(0, nil, Info, msg, fields)
 	return l
 }
 
 func (l *Unbuffered) Warning(msg string, fields ...Fielder) Logger {
-	l.Log(Warning, nil, msg, fields)
+	l.LogImpl(0, nil, Warning, msg, fields)
 	return l
 }
 
 func (l *Unbuffered) Error(msg string, fields ...Fielder) Logger {
-	l.Log(Error, nil, msg, fields)
+	l.LogImpl(0, nil, Error, msg, fields)
 	return l
 }

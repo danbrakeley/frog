@@ -47,7 +47,7 @@ The parameter `frog.Auto` tells `New` to autodetect if there's a terminal on std
 
 `frog.JSON` will output each log line as a single JSON object. This allows structured data to be easily consumed by a log parser that supports it (ie [filebeat](https://www.elastic.co/products/beats/filebeat)). A JSON logger created in this way doesn't support anchored lines, and by default will not output Transient level lines. Note that you can still call AddAnchor and Transient on such a logger, as the API remains consistent and valid, but nothing changes in the output as a result of these calls.
 
-You can also build a custom Logger, if you prefer. See the implementation of the `New` function in [frog.go](https://github.com/danbrakeley/frog/blob/master/frog.go#L40-L79) for examples.
+You can also build a custom Logger, if you prefer. See the implementation of the `New` function in [frog.go](https://github.com/danbrakeley/frog/blob/main/frog.go#L28-L55) for examples.
 
 Here's a complete list of Frog's log levels, and their intended uses:
 
@@ -73,6 +73,16 @@ level | description
   - When there are parent/child relationships, the outermost parent adds their fields first, then the next outermost parent, etc.
 
 ## Release Notes
+
+### 0.9.0
+
+- API BREAKING CHANGES
+- `Logger` interface: removed `Log()`, added `LogImpl()`.
+  - It is likely the signature of LogImpl will change in the near future.
+- This is fallout from a large refactor to fix a bug when an `AnchoredLogger` wraps a `CustomizerLogger`
+  - `Anchored` was written back when it was the only child logger, and it did dumb things like traverse up the parent chain until it found a Buffered, then set that as its parent (ignoring anything between it and the Buffered). Also it kept a copy of the Buffered's Printer.
+  - Now all Loggers that wrap other loggers are expected to know their parent and pass through requests, making modifications as needed, until the request hits the root Logger. This is why LogImpl currently has the anchored line as a parameter. I hope to obfuscate this in the future.
+- Added an extra Customizer to the relevant tests, so going forward this case will be tested.
 
 ### 0.8.4
 

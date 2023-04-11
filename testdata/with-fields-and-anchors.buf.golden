@@ -1,10 +1,10 @@
 [nfo] before adding anchor or fields
 
-[1F[==>] transient anchored line with fields     static=true[K[1E
-[2F[nfo] non-transient anchored line with fields      static=true[K
-[==>] transient anchored line with fields     static=true[K
+[1F[==>] transient anchored line with fields     where=inner static=true[K[1E
+[2F[nfo] non-transient anchored line with fields      where=inner static=true[K
+[==>] transient anchored line with fields     where=inner static=true[K
 
-[2F[nfo] just anchor[K
-[==>] transient anchored line with fields     static=true[K
-[1F[==>] transient anchored line without fields[K[1E[1F[K[WRN] now that the anchor is gone, lf should pass to the parent   static=true
+[2F[nfo] just anchor    where=inner[K
+[==>] transient anchored line with fields     where=inner static=true[K
+[1F[==>] transient anchored line without fields       where=inner[K[1E[1F[K[WRN] now that the anchor is gone, lf should pass to the parent   where=inner static=true
 [nfo] after removing anchored logger

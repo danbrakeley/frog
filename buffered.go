@@ -65,10 +65,6 @@ func NewBuffered(writer io.Writer, hasTerminal bool, prn Printer) *Buffered {
 	return l
 }
 
-func (l *Buffered) Printer() Printer {
-	return l.prn
-}
-
 // Close should be called before the app exits, to ensure any buffered output is flushed.
 // Thread safe.
 func (l *Buffered) Close() {
@@ -91,14 +87,14 @@ func (l *Buffered) Close() {
 // This "anchoring" is achieved by using ANSI to re-draw the anchored line at
 // the bottom as the output scrolls up.
 // Thread safe.
-func (l *Buffered) AddAnchor() Logger {
+func (l *Buffered) AddAnchor(parent Logger) Logger {
 	lineNum := atomic.AddInt32(&l.openAnchors, 1)
 	l.ch <- bufmsg{Type: mtAddLine, Line: lineNum}
 	onClose := func() {
 		atomic.AddInt32(&l.openAnchors, -1)
 		l.ch <- bufmsg{Type: mtRemoveLine, Line: lineNum}
 	}
-	return newAnchor(l, lineNum, onClose)
+	return newAnchor(parent, lineNum, onClose)
 }
 
 func (l *Buffered) processor() {
@@ -106,7 +102,9 @@ func (l *Buffered) processor() {
 		lineNum int32
 		str     string
 	}
-	var anchoredLines []anchoredLine
+
+	// avoid allocations later on by reserving space up front
+	anchoredLines := make([]anchoredLine, 0, 32)
 
 	fnMustFindIdx := func(line int32) int {
 		idx := -1
@@ -222,44 +220,38 @@ func (l *Buffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Buffered) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
-	if level < l.minLevel {
-		return l
+func (l *Buffered) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
+	if anchoredLine == 0 && level < l.minLevel {
+		return
 	}
-	l.logImpl(l.prn, opts, 0, level, msg, fields)
-	return l
-}
-
-// logImpl is only called if the line will be shown, regardless of level, line, etc
-func (l *Buffered) logImpl(prn Printer, opts []PrinterOption, anchoredLine int32, level Level, format string, fields []Fielder) {
 	l.ch <- bufmsg{
 		Line:  anchoredLine,
 		Level: level,
-		Msg:   prn.Render(level, opts, format, fields),
+		Msg:   l.prn.Render(level, opts, msg, fields),
 	}
 }
 
 func (l *Buffered) Transient(msg string, fields ...Fielder) Logger {
-	l.Log(Transient, nil, msg, fields)
+	l.LogImpl(0, nil, Transient, msg, fields)
 	return l
 }
 
 func (l *Buffered) Verbose(msg string, fields ...Fielder) Logger {
-	l.Log(Verbose, nil, msg, fields)
+	l.LogImpl(0, nil, Verbose, msg, fields)
 	return l
 }
 
 func (l *Buffered) Info(msg string, fields ...Fielder) Logger {
-	l.Log(Info, nil, msg, fields)
+	l.LogImpl(0, nil, Info, msg, fields)
 	return l
 }
 
 func (l *Buffered) Warning(msg string, fields ...Fielder) Logger {
-	l.Log(Warning, nil, msg, fields)
+	l.LogImpl(0, nil, Warning, msg, fields)
 	return l
 }
 
 func (l *Buffered) Error(msg string, fields ...Fielder) Logger {
-	l.Log(Error, nil, msg, fields)
+	l.LogImpl(0, nil, Error, msg, fields)
 	return l
 }

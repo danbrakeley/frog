@@ -223,6 +223,25 @@ func Test_TeeLogger(t *testing.T) {
 				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
 			}
 		})
+		t.Run(tc.Name+".swap.tee", func(t *testing.T) {
+			var buf1, buf2 bytes.Buffer
+			tee := &TeeLogger{
+				Primary:   NewUnbuffered(&buf2, &basicPrinter),      // anchors only work with Primary...
+				Secondary: NewBuffered(&buf1, false, &basicPrinter), // ...so this buffered will behave like unbuffered
+			}
+			tc.DoWork(tee)
+			tee.Close()
+			expected := fnExpected(tc.DoWork, false) // unbuffered
+			actual := buf1.Bytes()
+			if !bytes.Equal(expected, actual) {
+				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
+			}
+			expected = fnExpected(tc.DoWork, false) // unbuffered
+			actual = buf2.Bytes()
+			if !bytes.Equal(expected, actual) {
+				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
+			}
+		})
 	}
 }
 
@@ -402,14 +421,14 @@ func withFieldsAndOptions(l Logger) {
 	lf = WithOptionsAndFields(l, []PrinterOption{POPalette(PalDark)}, []Fielder{String("palette", "dark")})
 
 	lf.Info("customized logger", Int("n", 100))
-	lf.Log(Warning, []PrinterOption{POPalette(PalColor)}, "local option overrides customized option", []Fielder{String("palette", "color")})
+	lf.LogImpl(0, []PrinterOption{POPalette(PalColor)}, Warning, "local option overrides customized option", []Fielder{String("palette", "color")})
 
 	l.Verbose("original logger does not include added fields or options")
 }
 
 func withFieldsAndAnchors(l Logger) {
 	l.Info("before adding anchor or fields")
-	la := AddAnchor(l)
+	la := AddAnchor(WithFields(l, String("where", "inner")))
 	lf := WithFields(la, Bool("static", true))
 	lf.Transient("transient anchored line with fields")
 	lf.Info("non-transient anchored line with fields")
@@ -433,32 +452,4 @@ func Test_Anchor_Close(t *testing.T) {
 		}
 	}()
 	fl.Close()
-}
-
-func Test_AssertInterfaces(t *testing.T) {
-	fnAssertAdder := func(t *testing.T, log Logger) {
-		t.Helper()
-		_, ok := log.(AnchorAdder)
-		if !ok {
-			t.Errorf("logger is not a AnchorAdder")
-		}
-	}
-
-	fnAssertRemover := func(t *testing.T, log Logger) {
-		t.Helper()
-		_, ok := log.(AnchorRemover)
-		if !ok {
-			t.Errorf("logger is not a AnchorRemover")
-		}
-	}
-
-	bl := NewBuffered(&bytes.Buffer{}, false, &TextPrinter{})
-	fnAssertAdder(t, bl)
-	blfl := AddAnchor(bl)
-	fnAssertRemover(t, blfl)
-
-	tl := &TeeLogger{}
-	fnAssertAdder(t, tl)
-	tlfl := AddAnchor(tl)
-	fnAssertRemover(t, tlfl)
 }

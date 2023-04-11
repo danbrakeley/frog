@@ -32,33 +32,32 @@ func (l *CustomizerLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *CustomizerLogger) Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger {
+func (l *CustomizerLogger) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
 	// static fields should come first, then any line-specific fields
-	l.parent.Log(level, append(l.opts, opts...), msg, append(l.fields, fields...))
-	return l
+	l.parent.LogImpl(anchoredLine, append(l.opts, opts...), level, msg, append(l.fields, fields...))
 }
 
 func (l *CustomizerLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.Log(Transient, nil, msg, fields)
+	l.LogImpl(0, nil, Transient, msg, fields)
 	return l
 }
 
 func (l *CustomizerLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.Log(Verbose, nil, msg, fields)
+	l.LogImpl(0, nil, Verbose, msg, fields)
 	return l
 }
 
 func (l *CustomizerLogger) Info(msg string, fields ...Fielder) Logger {
-	l.Log(Info, nil, msg, fields)
+	l.LogImpl(0, nil, Info, msg, fields)
 	return l
 }
 
 func (l *CustomizerLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.Log(Warning, nil, msg, fields)
+	l.LogImpl(0, nil, Warning, msg, fields)
 	return l
 }
 
 func (l *CustomizerLogger) Error(msg string, fields ...Fielder) Logger {
-	l.Log(Error, nil, msg, fields)
+	l.LogImpl(0, nil, Error, msg, fields)
 	return l
 }

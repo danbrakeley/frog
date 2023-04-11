@@ -8,10 +8,11 @@ type Logger interface {
 	// SetMinLevel sets the lowest Level that will be logged.
 	SetMinLevel(level Level) Logger
 
-	// Log is how all log lines are added.
-	Log(level Level, opts []PrinterOption, msg string, fields []Fielder) Logger
+	// LogImpl is how all log lines are added.
+	// TODO: hide stuff like anchoredLine behind an interface?
+	LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder)
 
-	// Transient et al are just shortcuts for calling Log with specific levels.
+	// Transient and the rest all log a string (with optional fields) at a specific level.
 	Transient(msg string, fields ...Fielder) Logger
 	Verbose(msg string, fields ...Fielder) Logger
 	Info(msg string, fields ...Fielder) Logger
@@ -28,16 +29,11 @@ type ChildLogger interface {
 // AnchorAdder is the interface for loggers that support anchoring a line to the
 // bottom of the output, for progress bars or other transient status messages.
 type AnchorAdder interface {
-	AddAnchor() Logger
+	AddAnchor(parent Logger) Logger
 }
 
 // AnchorRemover is the interface that an anchor logger must implement
 // in order for the anchor to be removed before app end.
 type AnchorRemover interface {
 	RemoveAnchor()
-}
-
-// Printerer is an interface that exposes one's Printer
-type Printerer interface {
-	Printer() Printer
 }

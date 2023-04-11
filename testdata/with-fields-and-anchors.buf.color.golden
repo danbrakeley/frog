@@ -1,10 +1,10 @@
 [37m[nfo] [97mbefore adding anchor or fields[0m
 
-[1F[90m[==>] [32mtransient anchored line with fields     [90mstatic=[32mtrue[0m[K[1E
-[2F[37m[nfo] [97mnon-transient anchored line with fields      [37mstatic=[97mtrue[0m[K
-[90m[==>] [32mtransient anchored line with fields     [90mstatic=[32mtrue[0m[K
+[1F[90m[==>] [32mtransient anchored line with fields     [90mwhere=[32minner [90mstatic=[32mtrue[0m[K[1E
+[2F[37m[nfo] [97mnon-transient anchored line with fields      [37mwhere=[97minner [37mstatic=[97mtrue[0m[K
+[90m[==>] [32mtransient anchored line with fields     [90mwhere=[32minner [90mstatic=[32mtrue[0m[K
 
-[2F[37m[nfo] [97mjust anchor[0m[K
-[90m[==>] [32mtransient anchored line with fields     [90mstatic=[32mtrue[0m[K
-[1F[90m[==>] [32mtransient anchored line without fields[0m[K[1E[1F[K[33m[WRN] [93mnow that the anchor is gone, lf should pass to the parent   [33mstatic=[93mtrue[0m
+[2F[37m[nfo] [97mjust anchor    [37mwhere=[97minner[0m[K
+[90m[==>] [32mtransient anchored line with fields     [90mwhere=[32minner [90mstatic=[32mtrue[0m[K
+[1F[90m[==>] [32mtransient anchored line without fields       [90mwhere=[32minner[0m[K[1E[1F[K[33m[WRN] [93mnow that the anchor is gone, lf should pass to the parent   [33mwhere=[93minner [33mstatic=[93mtrue[0m
 [37m[nfo] [97mafter removing anchored logger[0m
