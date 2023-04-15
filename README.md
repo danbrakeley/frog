@@ -61,9 +61,11 @@ level | description
 
 ## TODO
 
+- pass color palette instead of constant
+- handle dicritics in uicode on long transient lines
+- make some benchmarks, maybe do a pass on performance
 - go doc pass
 - test on linux and mac
-- make some benchmarks, maybe do a pass on performance
 - handle terminal width size changing while an app is running (for anchored lines)
 
 ## Known Issues
@@ -74,9 +76,15 @@ level | description
 
 ## Release Notes
 
+### latest
+
+- **API BREAKING CHANGES**
+- Changed frog.Palette from an enum to an array of frog.Color, which allows customizing colors used for each log level.
+- TextPrinter no longer exports any of its fields, and instead users should use the printer options, e.g. POPalette(...)
+
 ### 0.9.0
 
-- API BREAKING CHANGES
+- **API BREAKING CHANGES**
 - `Logger` interface: removed `Log()`, added `LogImpl()`.
   - It is likely the signature of LogImpl will change in the near future.
 - This is fallout from a large refactor to fix a bug when an `AnchoredLogger` wraps a `CustomizerLogger`

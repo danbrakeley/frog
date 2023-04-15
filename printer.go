@@ -10,20 +10,12 @@ import (
 	"github.com/danbrakeley/frog/ansi"
 )
 
-var isNoColorSet = false
+var hasEnvVarNoColor = false
 
 func init() {
 	_, exists := os.LookupEnv("NO_COLOR")
-	isNoColorSet = exists
+	hasEnvVarNoColor = exists
 }
-
-type Palette byte
-
-const (
-	PalNone Palette = iota
-	PalColor
-	PalDark
-)
 
 type Printer interface {
 	Render(Level, []PrinterOption, string, []Fielder) string
@@ -31,11 +23,11 @@ type Printer interface {
 }
 
 type TextPrinter struct {
-	Palette    Palette
-	PrintTime  bool
-	PrintLevel bool
+	palette    ansicolors
+	printTime  bool
+	printLevel bool
 
-	// FieldIndent controls where the first field begins rendering, compared to the message.
+	// fieldIndent controls where the first field begins rendering, compared to the message.
 	// Note that the first field will always be at least 3 spaces from the end of the message,
 	// and always be aligned with an offset that is a multiple of 5
 	// For example:
@@ -47,37 +39,37 @@ type TextPrinter struct {
 	//   [nfo] short     fieldIndent=10
 	//   [nfo] short     fieldIndent=0
 	//   [nfo] sh   fieldIndent=0
-	FieldIndent int
+	fieldIndent int
 
-	// PrintMessageLast will cause the message to display after the fields, instead of before
+	// printMessageLast will cause the message to display after the fields, instead of before
 	// For example:
 	//   [nfo] fieldIndent=40                          short message
 	//   [nfo] fieldIndent=10      something  a long message that overflows the first field indent
-	PrintMessageLast bool
+	printMessageLast bool
 
-	// TransientLineLength is used to crop anchored lines, to avoid having them overflow into a second line.
+	// transientLineLength is used to crop anchored lines, to avoid having them overflow into a second line.
 	// A value of 0 means no cropping will occur. If an anchored line ends up being wider than the terminal,
 	// it will wrap, which will throw off the formatting and scramble the output.
-	TransientLineLength int
+	transientLineLength int
 }
 
 func (p *TextPrinter) SetOptions(opts ...PrinterOption) Printer {
 	for _, o := range opts {
 		switch ot := o.(type) {
 		case poPalette:
-			p.Palette = ot.Palette
+			p.palette = buildPalette(ot.Palette)
 		case poTime:
-			p.PrintTime = ot.Visible
+			p.printTime = ot.Visible
 		case poLevel:
-			p.PrintLevel = ot.Visible
+			p.printLevel = ot.Visible
 		case poFieldIndent:
-			p.FieldIndent = ot.Indent
+			p.fieldIndent = ot.Indent
 		case poMsgLeftFieldsRight:
-			p.PrintMessageLast = false
+			p.printMessageLast = false
 		case poFieldsLeftMsgRight:
-			p.PrintMessageLast = true
+			p.printMessageLast = true
 		case poTransientLineLength:
-			p.TransientLineLength = ot.Cols
+			p.transientLineLength = ot.Cols
 		}
 	}
 	return p
@@ -93,22 +85,6 @@ func trimNewlines(str string) string {
 	return str
 }
 
-var colorsMain = [levelMax][2]string{
-	{ansi.FgDarkGreen, ansi.FgDarkGray}, // Transient
-	{ansi.FgCyan, ansi.FgDarkCyan},      // Verbose
-	{ansi.FgWhite, ansi.FgLightGray},    // Info
-	{ansi.FgYellow, ansi.FgDarkYellow},  // Warning
-	{ansi.FgRed, ansi.FgDarkRed},        // Error
-}
-
-var colorsDark = [levelMax][2]string{
-	{ansi.FgDarkGray, ansi.FgDarkGray}, // Transient
-	{ansi.FgDarkGray, ansi.FgDarkGray}, // Verbose
-	{ansi.FgDarkGray, ansi.FgDarkGray}, // Info
-	{ansi.FgDarkGray, ansi.FgDarkGray}, // Warning
-	{ansi.FgDarkGray, ansi.FgDarkGray}, // Error
-}
-
 func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Fielder) string {
 	// To override printer options just for this one line, make a copy of the existing printer settings,
 	// then set our one-off options on that copy, then finally call Render on the altered copy.
@@ -121,19 +97,10 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 	var useColor bool
 	var colorPrimary, colorSecondary string
 
-	if !isNoColorSet {
-		switch p.Palette {
-		case PalNone:
-			useColor = false
-		case PalColor:
-			useColor = true
-			colorPrimary = ansi.CSI + colorsMain[level][0] + "m"
-			colorSecondary = ansi.CSI + colorsMain[level][1] + "m"
-		case PalDark:
-			useColor = true
-			colorPrimary = ansi.CSI + colorsDark[level][0] + "m"
-			colorSecondary = ansi.CSI + colorsDark[level][1] + "m"
-		}
+	if !hasEnvVarNoColor {
+		colorPrimary = p.palette[level][0]
+		colorSecondary = p.palette[level][1]
+		useColor = len(colorPrimary) > 0 && len(colorSecondary) > 0
 	}
 
 	msg = escapeStringForTerminal(trimNewlines(msg))
@@ -145,11 +112,11 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 		sb.WriteString(colorSecondary)
 	}
 
-	if p.PrintTime {
+	if p.printTime {
 		sb.WriteString(fmt.Sprintf("%s ", time.Now().Format("2006.01.02-15:04:05")))
 	}
 
-	if p.PrintLevel {
+	if p.printLevel {
 		switch level {
 		case Transient:
 			sb.WriteString("[==>] ")
@@ -211,7 +178,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 	// write left side
 	var visibleRuneCount int
 	var hasRightSide bool
-	if p.PrintMessageLast {
+	if p.printMessageLast {
 		visibleRuneCount = fnWriteFields()
 		hasRightSide = len(msg) > 0
 	} else {
@@ -221,7 +188,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 
 	// write indentation
 	if visibleRuneCount > 0 && hasRightSide {
-		minLen := p.FieldIndent
+		minLen := p.fieldIndent
 		const minSpace = 3
 		const tabWidth = 5
 
@@ -238,7 +205,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 
 	if hasRightSide {
 		// write right side
-		if p.PrintMessageLast {
+		if p.printMessageLast {
 			fnWriteMsg()
 		} else {
 			fnWriteFields()
@@ -251,10 +218,10 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 
 	out := sb.String()
 
-	if level == Transient && p.TransientLineLength > 0 {
+	if level == Transient && p.transientLineLength > 0 {
 		runeCount := len([]rune(out))
-		if runeCount > p.TransientLineLength {
-			out = ansi.CropVisibleRunes(out, p.TransientLineLength)
+		if runeCount > p.transientLineLength {
+			out = ansi.CropPreservingANSI(out, p.transientLineLength)
 		}
 	}
 

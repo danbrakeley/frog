@@ -2,7 +2,8 @@ package ansi
 
 import "strings"
 
-func CropVisibleRunes(str string, max int) string {
+// CropPreservingANSI crops the unicode runes down to given length, but preserves all ANSI/VT100 escape sequences.
+func CropPreservingANSI(str string, max int) string {
 	inEscape := false
 	visibleCount := 0
 

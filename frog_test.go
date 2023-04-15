@@ -46,21 +46,21 @@ func Test_BufferedLogger(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".buf", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, false, &TextPrinter{PrintTime: false, PrintLevel: true})
+			log := NewBuffered(&buf, false, &TextPrinter{printLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf", buf.Bytes())
 		})
 		t.Run(tc.Name+".buf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, false, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true})
+			log := NewBuffered(&buf, false, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf.color", buf.Bytes())
 		})
 		t.Run(tc.Name+".buf.term20.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, false, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true, TransientLineLength: 20})
+			log := NewBuffered(&buf, false, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true, transientLineLength: 20})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf.term20.color", buf.Bytes())
@@ -85,14 +85,14 @@ func Test_UnbufferedLogger(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".unbuf", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true})
+			log := NewUnbuffered(&buf, &TextPrinter{printLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf", buf.Bytes())
 		})
 		t.Run(tc.Name+".unbuf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true})
+			log := NewUnbuffered(&buf, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.color", buf.Bytes())
@@ -115,14 +115,14 @@ func Test_SwapMessageAndFields(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".unbuf.swap", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{PrintTime: false, PrintLevel: true, PrintMessageLast: true})
+			log := NewUnbuffered(&buf, &TextPrinter{printLevel: true, printMessageLast: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap", buf.Bytes())
 		})
 		t.Run(tc.Name+".unbuf.swap.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{Palette: PalColor, PrintTime: false, PrintLevel: true, PrintMessageLast: true})
+			log := NewUnbuffered(&buf, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true, printMessageLast: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap.color", buf.Bytes())
@@ -187,7 +187,7 @@ func Test_TeeLogger(t *testing.T) {
 		{"with-fields-and-anchors", withFieldsAndAnchors},
 	}
 
-	basicPrinter := TextPrinter{PrintTime: false, PrintLevel: true}
+	basicPrinter := TextPrinter{printLevel: true}
 
 	// Assuming Buffered and Unbuffered are already tested, then this creates our expected results
 	fnExpected := func(doWork func(Logger), buffered bool) []byte {
@@ -418,10 +418,10 @@ func withFieldsAndOptions(l Logger) {
 
 	l.Verbose("original logger does not include added fields")
 
-	lf = WithOptionsAndFields(l, []PrinterOption{POPalette(PalDark)}, []Fielder{String("palette", "dark")})
+	lf = WithOptionsAndFields(l, []PrinterOption{POPalette(DarkPalette)}, []Fielder{String("palette", "dark")})
 
 	lf.Info("customized logger", Int("n", 100))
-	lf.LogImpl(0, []PrinterOption{POPalette(PalColor)}, Warning, "local option overrides customized option", []Fielder{String("palette", "color")})
+	lf.LogImpl(0, []PrinterOption{POPalette(DefaultPalette)}, Warning, "local option overrides customized option", []Fielder{String("palette", "color")})
 
 	l.Verbose("original logger does not include added fields or options")
 }

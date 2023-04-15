@@ -42,10 +42,10 @@ func New(t NewLogger, opts ...PrinterOption) Logger {
 
 	switch t {
 	case Auto:
-		prn := TextPrinter{Palette: PalColor, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
+		prn := TextPrinter{palette: buildPalette(DefaultPalette), printTime: true, printLevel: true, fieldIndent: 20}
 		return NewBuffered(os.Stdout, hasTerminal, prn.SetOptions(opts...))
 	case Basic:
-		prn := TextPrinter{Palette: PalNone, PrintTime: true, PrintLevel: true, FieldIndent: 20, PrintMessageLast: false}
+		prn := TextPrinter{printTime: true, printLevel: true, fieldIndent: 20}
 		return NewUnbuffered(os.Stdout, prn.SetOptions(opts...))
 	case JSON:
 		return NewUnbuffered(os.Stdout, &JSONPrinter{})

@@ -7,8 +7,8 @@ type PrinterOption interface {
 
 // Palette
 
-func POPalette(pal Palette) PrinterOption {
-	return poPalette{Palette: pal}
+func POPalette(p Palette) PrinterOption {
+	return poPalette{Palette: p}
 }
 
 type poPalette struct {

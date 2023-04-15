@@ -26,7 +26,13 @@ func main() {
 	for i := 0; i < threads; i++ {
 		n := i
 		anchored := frog.AddAnchor(log)
-		dark := frog.WithOptions(anchored, frog.POPalette(frog.PalDark))
+		dark := frog.WithOptions(anchored, frog.POPalette(frog.Palette{
+			{frog.DarkCyan, frog.DarkGray}, // Transient
+			{frog.DarkCyan, frog.DarkGray}, // Verbose
+			{frog.DarkCyan, frog.DarkGray}, // Info
+			{frog.DarkCyan, frog.DarkGray}, // Warning
+			{frog.DarkCyan, frog.DarkGray}, // Error
+		}))
 		go func() {
 			runProcess(dark, n)
 			dark.Info("thread finished", frog.Int("thread", n))

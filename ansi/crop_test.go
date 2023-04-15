@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_CropVisibleRunes(t *testing.T) {
+func Test_CropPreservingANSI(t *testing.T) {
 	cases := []struct {
 		Name     string
 		In       string
@@ -35,6 +35,12 @@ func Test_CropVisibleRunes(t *testing.T) {
 				Up(100) + Down(2) + Left(9999) + Right(51) + NextLine(10) + PrevLine(800) +
 				SGR(FgDarkRed, BgWhite, Bold, Underline, Reverse) + SGR(Reset),
 		},
+		// TODO: The following case is not handled properly because it uses diacritics that combine
+		// multiple code points into a single grapheme.
+		// Maybe [rivo/uniseg](https://github.com/rivo/uniseg) can help? Should get benchmarking in
+		// first to understand performance overhead?
+		// If performance is a concern, maybe add a printer option so user can choose faster if desired?
+		// {"diacritics", "deͤmͫͫoͦͦͦ", 3, "deͤmͫͫ"},
 	}
 
 	escape := func(str string) string {
@@ -52,7 +58,7 @@ func Test_CropVisibleRunes(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := CropVisibleRunes(tc.In, tc.Max)
+			actual := CropPreservingANSI(tc.In, tc.Max)
 
 			if actual != tc.Expected {
 				t.Errorf("\nexpected: %s\n  actual: %s", escape(tc.Expected), escape(actual))
