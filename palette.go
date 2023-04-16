@@ -47,7 +47,7 @@ var DarkPalette = Palette{
 
 type ansicolors [levelMax][2]string
 
-func buildPalette(p Palette) ansicolors {
+func (p *Palette) toANSI() ansicolors {
 	var out ansicolors
 	for i := levelMin; i < levelMax; i++ {
 		out[i][0] = ansiFgColor(p[i][0])

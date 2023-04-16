@@ -57,7 +57,7 @@ func (p *TextPrinter) SetOptions(opts ...PrinterOption) Printer {
 	for _, o := range opts {
 		switch ot := o.(type) {
 		case poPalette:
-			p.palette = buildPalette(ot.Palette)
+			p.palette = ot.ANSIColors
 		case poTime:
 			p.printTime = ot.Visible
 		case poLevel:

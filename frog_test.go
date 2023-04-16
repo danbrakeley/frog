@@ -53,14 +53,14 @@ func Test_BufferedLogger(t *testing.T) {
 		})
 		t.Run(tc.Name+".buf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, false, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true})
+			log := NewBuffered(&buf, false, &TextPrinter{palette: DefaultPalette.toANSI(), printLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf.color", buf.Bytes())
 		})
 		t.Run(tc.Name+".buf.term20.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewBuffered(&buf, false, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true, transientLineLength: 20})
+			log := NewBuffered(&buf, false, &TextPrinter{palette: DefaultPalette.toANSI(), printLevel: true, transientLineLength: 20})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".buf.term20.color", buf.Bytes())
@@ -92,7 +92,7 @@ func Test_UnbufferedLogger(t *testing.T) {
 		})
 		t.Run(tc.Name+".unbuf.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true})
+			log := NewUnbuffered(&buf, &TextPrinter{palette: DefaultPalette.toANSI(), printLevel: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.color", buf.Bytes())
@@ -122,7 +122,7 @@ func Test_SwapMessageAndFields(t *testing.T) {
 		})
 		t.Run(tc.Name+".unbuf.swap.color", func(t *testing.T) {
 			var buf bytes.Buffer
-			log := NewUnbuffered(&buf, &TextPrinter{palette: buildPalette(DefaultPalette), printLevel: true, printMessageLast: true})
+			log := NewUnbuffered(&buf, &TextPrinter{palette: DefaultPalette.toANSI(), printLevel: true, printMessageLast: true})
 			tc.DoWork(log)
 			log.Close()
 			AssertGolden(t, tc.Name+".unbuf.swap.color", buf.Bytes())

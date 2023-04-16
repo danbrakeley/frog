@@ -8,11 +8,11 @@ type PrinterOption interface {
 // Palette
 
 func POPalette(p Palette) PrinterOption {
-	return poPalette{Palette: p}
+	return poPalette{ANSIColors: p.toANSI()}
 }
 
 type poPalette struct {
-	Palette Palette
+	ANSIColors ansicolors
 }
 
 func (_ poPalette) isPrinterOption() {}

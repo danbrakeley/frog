@@ -42,7 +42,7 @@ func New(t NewLogger, opts ...PrinterOption) Logger {
 
 	switch t {
 	case Auto:
-		prn := TextPrinter{palette: buildPalette(DefaultPalette), printTime: true, printLevel: true, fieldIndent: 20}
+		prn := TextPrinter{palette: DefaultPalette.toANSI(), printTime: true, printLevel: true, fieldIndent: 20}
 		return NewBuffered(os.Stdout, hasTerminal, prn.SetOptions(opts...))
 	case Basic:
 		prn := TextPrinter{printTime: true, printLevel: true, fieldIndent: 20}
