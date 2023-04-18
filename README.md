@@ -2,62 +2,103 @@
 
 ## Overview
 
-Frog is a package for logging output.
+Frog is a package for structured logging that is fast, easy to use, good looking, and customizable.
 
-When connected to a terminal, Frog allows lines to be anchored to the bottom of the output. This allows progress bars and other UX that is only meant for human consumption. When not connected to a terminal, by default these "transient" lines are skipped (can be overridden).
+Frog includes:
 
-Windows Users: Frog uses ANSI/VT-100 commands to change colors and move the cursor, and for this to display properly, you must be using Windows 10 build 1511 (circa 2016) or newer, or be using a third-party terminal application like ConEmu/Cmdr or mintty. There's no planned supoprt for the native command prompts of earlier versions of Windows.
-
-![animated gif of frog in action](https://the.real.danbrakeley.com/github/frog-0.2.0-demo.gif)
-
-## Features
-
-- Multiple logging levels
-- Anchoring of one or more lines for progress bars and real-time status displays
-  - disabled if not connected terminal
-- Colorized output
-  - disabled if not connected terminal
-  - disabled if [NO_COLOR](https://no-color.org) is set
-- Use of standard io.Writer interface allows easy retargetting of logs to files, buffers, etc
-- Customizable line style via `Printer` interface
-  - built in styles for lines in plain text or JSON
-- Loggers can be written to target other loggers (see `TeeLogger`)
-
-## Usage
-
-The quickest way to get started is to create one of the default `Logger`s via a call to `frog.New`:
-
-```go
-  log := frog.New(frog.Auto)
-  defer log.Close()
-
-  log.Info("Example log line")
-  log.Warning("Example warning")
-
-  status := frog.AddAnchor(log)
-  defer frog.RemoveAnchor(status)
-  for i := 0; i <= 100; i++ {
-    status.Transient(" + complete", frog.Int("percent", n))
-    time.Sleep(time.Duration(10) * time.Millisecond)
-  }
-  status.Info("Done", n)
-```
-
-The parameter `frog.Auto` tells `New` to autodetect if there's a terminal on stdout, and if so, to enable support for anchored lines and colors. There are other default styles you can pass to `New` as well, like `frog.Basic` and `frog.JSON`.
-
-`frog.JSON` will output each log line as a single JSON object. This allows structured data to be easily consumed by a log parser that supports it (ie [filebeat](https://www.elastic.co/products/beats/filebeat)). A JSON logger created in this way doesn't support anchored lines, and by default will not output Transient level lines. Note that you can still call AddAnchor and Transient on such a logger, as the API remains consistent and valid, but nothing changes in the output as a result of these calls.
-
-You can also build a custom Logger, if you prefer. See the implementation of the `New` function in [frog.go](https://github.com/danbrakeley/frog/blob/main/frog.go#L28-L55) for examples.
-
-Here's a complete list of Frog's log levels, and their intended uses:
+- Built-in support for plain text or JSON output.
+- Plain text output optinally supports ANSI colors per log level, including user-defined palettes.
+  - Colors respect [NO_COLOR](https://no-color.org)
+- [Anchoring](#anchoring) of log lines to the bottom of the terminal output for progress bars and real-time status updates.
+- Detection of terminal/tty and disabling of ANSI/anchoring when none is found.
+- User-customizable line rendering via the `Printer` interface.
+- Nesting of Loggers to add fields, rendering settings, and custom behavior.
+- Five log levels:
 
 level | description
 --- | ---
 `Transient` | Output that is safe to ignore (like progress bars and estimated time remaining).
-`Verbose` | Output for debugging (disabled most of the time).
-`Info` | Normal log lines (usually enabled).
+`Verbose` | Output for debugging (disabled by default).
+`Info` | Normal events.
 `Warning` | Unusual events.
 `Error` | Something went wrong.
+
+## Anchoring
+
+![animated gif of anchoring in action](images/anchoring-and-tty-detect.gif)
+
+Anchors require an ANSI-compatible terminal connected to the output.
+
+To add an anchored Logger, call `frog.AddAnchor()` and pass in an existing Logger. If the Logger supports anchors, then it will return a new child Logger that targets the anchored line. If the Logger does not support anchored lines, `AddAnchor` will still return a valid Logger, possibly the same Logger that you passed in. Regardless, it is always safe to call `frog.RemoveAnchor()` on the returned Logger when you are done with it.
+
+Note that you should not call `Close` on any Logger returned from `AddAnchor`. In fact, calling `Close` on any Logger besides the root Logger will panic. But the root Logger MUST have Close called on it, to ensure that any buffered log lines are flushed before your app terminates.
+
+Note that anchor Loggers will only write to the anchored line when you use the Transient log level. Using Verbose, Info, Warning, or Error will pass through to the parent logger.
+
+Note that the order you add anchored Loggers can be different from the order you remove them.
+
+The above gif was created with this code:
+
+```go
+package main
+
+import (
+	"math/rand"
+	"sync"
+	"time"
+
+	"github.com/danbrakeley/frog"
+)
+
+func main() {
+	log := frog.New(frog.Auto)
+	defer log.Close()
+
+	log.Info("Spawning example threads...", frog.Int("count", 3))
+	time.Sleep(time.Second)
+
+	wg := new(sync.WaitGroup)
+	wg.Add(3)
+	for i := 0; i < 3; i++ {
+		go doWork(wg, frog.AddAnchor(log), i)
+	}
+
+	time.Sleep(time.Second)
+	log.Info("waited for one second...")
+	time.Sleep(time.Second)
+	log.Warning("waited for two seconds...")
+	time.Sleep(time.Second)
+	log.Error("BORED OF WAITING")
+	wg.Wait()
+
+	log.Info("All threads done!")
+}
+
+func doWork(wg *sync.WaitGroup, log frog.Logger, n int) {
+	defer wg.Done()
+	defer frog.RemoveAnchor(log)
+
+	log.Transient(" + starting...", frog.Int("thread", n))
+	time.Sleep(time.Duration(400*n) * time.Millisecond)
+
+	for j := 0; j <= 100; j++ {
+		log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
+		time.Sleep(time.Duration(10+rand.Intn(50)) * time.Millisecond)
+	}
+}
+```
+
+## Windows compatibility
+
+Frog uses ANSI/VT-100 commands to change colors and move the cursor, and for this to display properly, you must be using Windows 10 build 1511 (circa 2016) or newer, or be using a third-party terminal application like ConEmu/Cmdr, mintty, or Windows Terminal. There's no planned supoprt for the native command prompts of earlier versions of Windows.
+
+## Usage
+
+The quickest way to get started is to create one of the default `Logger`s via a call to `frog.New`. The parameter `frog.Auto` tells `New` to autodetect if there's a terminal on stdout, and if so, to enable support for colors and anchored lines. There are other default styles you can pass to `New` as well, like `frog.Basic` and `frog.JSON`.
+
+`frog.JSON` will output each log line as a single JSON object. This allows structured data to be easily consumed by a log parser that supports it (e.g. [filebeat](https://www.elastic.co/products/beats/filebeat)). A JSON logger created in this way doesn't support anchored lines, and by default will not output Transient level lines. Note that you can still call AddAnchor and Transient on such a logger, as the API remains consistent and valid, but nothing changes in the output as a result of these calls.
+
+You can also build a custom Logger, if you prefer. See the implementation of the `New` function in [frog.go](https://github.com/danbrakeley/frog/blob/main/frog.go#L28-L55) for examples.
 
 ## TODO
 

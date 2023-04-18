@@ -229,7 +229,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 }
 
 type JSONPrinter struct {
-	TimeOverride time.Time
+	TimeOverride time.Time // TODO: only tests use this currently, can we instead support POTime for tests?
 }
 
 func (p *JSONPrinter) SetOptions(opts ...PrinterOption) Printer {

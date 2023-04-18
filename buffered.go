@@ -37,7 +37,7 @@ type bufmsg struct {
 	Msg   string
 }
 
-func NewBuffered(writer io.Writer, hasTerminal bool, prn Printer) *Buffered {
+func NewBuffered(writer io.Writer, requestTerminalSize bool, prn Printer) *Buffered {
 	l := &Buffered{
 		minLevel: Info,
 		writer:   writer,
@@ -51,7 +51,7 @@ func NewBuffered(writer io.Writer, hasTerminal bool, prn Printer) *Buffered {
 		return nil
 	}
 	go func() {
-		if hasTerminal {
+		if requestTerminalSize {
 			c, _, err := terminal.GetSize()
 			if err != nil {
 				c = -1
