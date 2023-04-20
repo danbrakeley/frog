@@ -5,11 +5,22 @@ package frog
 type TeeLogger struct {
 	Primary   Logger // Anchors are only supported though this logger
 	Secondary Logger
+
+	minLevel Level // defaults to Transient
 }
 
-func (l *TeeLogger) Close() {
-	l.Primary.Close()
-	l.Secondary.Close()
+func NewRootTee(a RootLogger, b RootLogger) (*TeeLogger, func()) {
+	close := func() {
+		a.Close()
+		b.Close()
+	}
+
+	l := &TeeLogger{
+		Primary:   a,
+		Secondary: b,
+	}
+
+	return l, close
 }
 
 func (l *TeeLogger) Parent() Logger {
@@ -17,38 +28,50 @@ func (l *TeeLogger) Parent() Logger {
 	return l.Primary
 }
 
-func (l *TeeLogger) SetMinLevel(level Level) Logger {
-	l.Primary.SetMinLevel(level)
-	l.Secondary.SetMinLevel(level)
-	return l
+func (n *TeeLogger) MinLevel() Level {
+	return n.minLevel
 }
 
-func (l *TeeLogger) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
-	l.Primary.LogImpl(anchoredLine, opts, level, msg, fields)
-	l.Secondary.LogImpl(0, opts, level, msg, fields)
+func (n *TeeLogger) SetMinLevel(level Level) Logger {
+	n.minLevel = level
+	return n
+}
+
+func (l *TeeLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel) // ensure our minLevel is taken into account
+
+	l.Primary.LogImpl(level, msg, fields, opts, d)
+
+	d.AnchoredLine = 0 // secondary loggers don't support anchored lines
+	l.Secondary.LogImpl(level, msg, fields, opts, d)
 }
 
 func (l *TeeLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Transient, msg, fields)
+	l.LogImpl(Transient, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *TeeLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Verbose, msg, fields)
+	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *TeeLogger) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Info, msg, fields)
+	l.LogImpl(Info, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *TeeLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Warning, msg, fields)
+	l.LogImpl(Warning, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *TeeLogger) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Error, msg, fields)
+	l.LogImpl(Error, msg, fields, nil, ImplData{})
+	return l
+}
+
+func (l *TeeLogger) Log(level Level, msg string, fields ...Fielder) Logger {
+	l.LogImpl(level, msg, fields, nil, ImplData{})
 	return l
 }

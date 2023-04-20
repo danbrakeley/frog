@@ -1,23 +1,36 @@
 package frog
 
-type Logger interface {
+type RootLogger interface {
+	Logger
+
 	// Close ensures any buffers are flushed and any resources released.
 	// It is safe to call Close more than once (but consecutive calls do nothing).
 	Close()
+}
 
-	// SetMinLevel sets the lowest Level that will be logged.
+type Logger interface {
+	// MinLevel gets the minimum level that is filtered by this Logger.
+	// This value does not include any min level set by its parent(s).
+	MinLevel() Level
+	// SetMinLevel sets the lowest Level that will be accepted by this Logger.
+	// If this Logger has parent(s), the effective MinLevel will be the max of each logger's min level.
 	SetMinLevel(level Level) Logger
 
-	// LogImpl is how all log lines are added.
-	// TODO: hide stuff like anchoredLine behind an interface?
-	LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder)
-
-	// Transient and the rest all log a string (with optional fields) at a specific level.
+	// Transient logs a string (with optional fields) with the log level set to Transient.
 	Transient(msg string, fields ...Fielder) Logger
+	// Verbose logs a string (with optional fields) with the log level set to Verbose.
 	Verbose(msg string, fields ...Fielder) Logger
+	// Info logs a string (with optional fields) with the log level set to Info.
 	Info(msg string, fields ...Fielder) Logger
+	// Warning logs a string (with optional fields) with the log level set to Warning.
 	Warning(msg string, fields ...Fielder) Logger
+	// Error logs a string (with optional fields) with the log level set to Error.
 	Error(msg string, fields ...Fielder) Logger
+	// Log logs a string (with optional fields) with the log level set to the passed in value.
+	Log(level Level, msg string, fields ...Fielder) Logger
+
+	// LogImpl is called by children to pass up log events to the root Logger.
+	LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData)
 }
 
 // ChildLogger is the interface for loggers that feed back to a parent.

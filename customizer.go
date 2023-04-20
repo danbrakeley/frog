@@ -1,14 +1,11 @@
 package frog
 
-import (
-	"fmt"
-)
-
 // CustomizerLogger is a Logger that adds specific fields and/or sets specific printer options for each line it logs
 type CustomizerLogger struct {
-	parent Logger
-	opts   []PrinterOption
-	fields []Fielder
+	parent   Logger
+	opts     []PrinterOption
+	fields   []Fielder
+	minLevel Level // defaults to Transient
 }
 
 func newCustomizerLogger(l Logger, opts []PrinterOption, f []Fielder) *CustomizerLogger {
@@ -23,41 +20,48 @@ func (l *CustomizerLogger) Parent() Logger {
 	return l.parent
 }
 
-func (l *CustomizerLogger) Close() {
-	panic(fmt.Errorf("called Close on a CustomizerLogger logger"))
+func (l *CustomizerLogger) MinLevel() Level {
+	return l.minLevel
 }
 
 func (l *CustomizerLogger) SetMinLevel(level Level) Logger {
-	l.parent.SetMinLevel(level)
+	l.minLevel = level
 	return l
 }
 
-func (l *CustomizerLogger) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
+func (l *CustomizerLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel) // ensure our minLevel is taken into account
+
 	// static fields should come first, then any line-specific fields
-	l.parent.LogImpl(anchoredLine, append(l.opts, opts...), level, msg, append(l.fields, fields...))
+	l.parent.LogImpl(level, msg, append(l.fields, fields...), append(l.opts, opts...), d)
 }
 
 func (l *CustomizerLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Transient, msg, fields)
+	l.LogImpl(Transient, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *CustomizerLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Verbose, msg, fields)
+	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *CustomizerLogger) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Info, msg, fields)
+	l.LogImpl(Info, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *CustomizerLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Warning, msg, fields)
+	l.LogImpl(Warning, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *CustomizerLogger) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Error, msg, fields)
+	l.LogImpl(Error, msg, fields, nil, ImplData{})
+	return l
+}
+
+func (l *CustomizerLogger) Log(level Level, msg string, fields ...Fielder) Logger {
+	l.LogImpl(level, msg, fields, nil, ImplData{})
 	return l
 }

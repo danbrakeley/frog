@@ -1,7 +1,6 @@
 package frog
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -9,8 +8,9 @@ import (
 // - Transient level is never ignored, and always overwrites the same output line.
 // - Non-Transient level is sent to the parent logger.
 type AnchoredLogger struct {
-	parent Logger
-	line   int32
+	parent   Logger
+	line     int32
+	minLevel Level // defaults to Transient
 
 	mutex     sync.RWMutex
 	fnOnClose func()
@@ -34,58 +34,62 @@ func (l *AnchoredLogger) RemoveAnchor() {
 	l.mutex.Unlock()
 }
 
-func (l *AnchoredLogger) Close() {
-	panic(fmt.Errorf("called Close on a AnchoredLogger logger"))
-}
-
 func (l *AnchoredLogger) Parent() Logger {
 	return l.parent
 }
 
+func (l *AnchoredLogger) MinLevel() Level {
+	return l.minLevel
+}
+
 func (l *AnchoredLogger) SetMinLevel(level Level) Logger {
-	l.parent.SetMinLevel(level)
+	l.minLevel = level
 	return l
 }
 
-// LogImpl has to handle log requests from this package and from any children
-// The value of the anchoredLine argument is ignored in favor of the line we store internally.
-func (l *AnchoredLogger) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
-	// if we are requesting to log on an anchored line, then
-	var line int32
+func (l *AnchoredLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel) // ensure our minLevel is taken into account
+
+	var line int32 // 0 if not targetting an anchored line
 
 	// only transient lines are anchorable
 	if level == Transient {
-		if l.line != 0 {
-			l.mutex.RLock()
-			line = l.line
-			l.mutex.RUnlock()
-		}
+		l.mutex.RLock()
+		line = l.line
+		l.mutex.RUnlock()
 	}
 
-	l.parent.LogImpl(line, opts, level, msg, fields)
+	// set our target anchor line, then pass up to the parent to render
+	d.AnchoredLine = line
+	l.parent.LogImpl(level, msg, fields, opts, d)
 }
 
 func (l *AnchoredLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Transient, msg, fields)
+	l.LogImpl(Transient, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *AnchoredLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Verbose, msg, fields)
+	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *AnchoredLogger) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Info, msg, fields)
+	l.LogImpl(Info, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *AnchoredLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Warning, msg, fields)
+	l.LogImpl(Warning, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *AnchoredLogger) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Error, msg, fields)
+	l.LogImpl(Error, msg, fields, nil, ImplData{})
+	return l
+}
+
+func (l *AnchoredLogger) Log(level Level, msg string, fields ...Fielder) Logger {
+	l.LogImpl(level, msg, fields, nil, ImplData{})
 	return l
 }

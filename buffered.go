@@ -212,46 +212,61 @@ func (l *Buffered) processor() {
 	}
 }
 
+func (l *Buffered) MinLevel() Level {
+	return l.minLevel
+}
+
 func (l *Buffered) SetMinLevel(level Level) Logger {
-	if level < levelMin || level >= levelMax {
-		panic(fmt.Errorf("level %v is not in valid range [%v,%v)", level, levelMin, levelMax))
-	}
 	l.minLevel = level
 	return l
 }
 
-func (l *Buffered) LogImpl(anchoredLine int32, opts []PrinterOption, level Level, msg string, fields []Fielder) {
-	if anchoredLine == 0 && level < l.minLevel {
+func (l *Buffered) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel)
+
+	keep := false
+	if d.AnchoredLine == 0 {
+		keep = level >= d.MinLevel
+	} else {
+		keep = level >= d.MinLevel || level == Transient
+	}
+	if !keep {
 		return
 	}
+
 	l.ch <- bufmsg{
-		Line:  anchoredLine,
+		Line:  d.AnchoredLine,
 		Level: level,
 		Msg:   l.prn.Render(level, opts, msg, fields),
 	}
 }
 
 func (l *Buffered) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Transient, msg, fields)
+	l.LogImpl(Transient, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *Buffered) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Verbose, msg, fields)
+	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *Buffered) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Info, msg, fields)
+	l.LogImpl(Info, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *Buffered) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Warning, msg, fields)
+	l.LogImpl(Warning, msg, fields, nil, ImplData{})
 	return l
 }
 
 func (l *Buffered) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(0, nil, Error, msg, fields)
+	l.LogImpl(Error, msg, fields, nil, ImplData{})
+	return l
+}
+
+func (l *Buffered) Log(level Level, msg string, fields ...Fielder) Logger {
+	l.LogImpl(level, msg, fields, nil, ImplData{})
 	return l
 }

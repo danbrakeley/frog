@@ -192,7 +192,7 @@ func Test_TeeLogger(t *testing.T) {
 	// Assuming Buffered and Unbuffered are already tested, then this creates our expected results
 	fnExpected := func(doWork func(Logger), buffered bool) []byte {
 		var buf bytes.Buffer
-		var log Logger
+		var log RootLogger
 		if buffered {
 			log = NewBuffered(&buf, false, &basicPrinter)
 		} else {
@@ -206,12 +206,19 @@ func Test_TeeLogger(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".tee", func(t *testing.T) {
 			var buf1, buf2 bytes.Buffer
-			tee := &TeeLogger{
-				Primary:   NewBuffered(&buf1, false, &basicPrinter),
-				Secondary: NewUnbuffered(&buf2, &basicPrinter),
-			}
+			tee, close := NewRootTee(
+				NewBuffered(&buf1, false, &basicPrinter),
+				NewUnbuffered(&buf2, &basicPrinter),
+			)
+			// We want the test cases to be able to set whatever min level they want, so make sure
+			// the root loggers will accept anything
+			tee.Primary.SetMinLevel(Transient)
+			tee.Secondary.SetMinLevel(Transient)
 			tc.DoWork(tee)
-			tee.Close()
+			// ...but reset before closing (Buffered will send debug out when the log is closed)
+			tee.Primary.SetMinLevel(Info)
+			tee.Secondary.SetMinLevel(Info)
+			close()
 			expected := fnExpected(tc.DoWork, true)
 			actual := buf1.Bytes()
 			if !bytes.Equal(expected, actual) {
@@ -225,12 +232,19 @@ func Test_TeeLogger(t *testing.T) {
 		})
 		t.Run(tc.Name+".swap.tee", func(t *testing.T) {
 			var buf1, buf2 bytes.Buffer
-			tee := &TeeLogger{
-				Primary:   NewUnbuffered(&buf2, &basicPrinter),      // anchors only work with Primary...
-				Secondary: NewBuffered(&buf1, false, &basicPrinter), // ...so this buffered will behave like unbuffered
-			}
+			tee, close := NewRootTee(
+				NewUnbuffered(&buf2, &basicPrinter),      // anchors only work with Primary...
+				NewBuffered(&buf1, false, &basicPrinter), // ...so this buffered will behave like unbuffered
+			)
+			// We want the test cases to be able to set whatever min level they want, so make sure
+			// the root loggers will accept anything...
+			tee.Primary.SetMinLevel(Transient)
+			tee.Secondary.SetMinLevel(Transient)
 			tc.DoWork(tee)
-			tee.Close()
+			// ...but reset before closing (Buffered will send debug out when the log is closed)
+			tee.Primary.SetMinLevel(Info)
+			tee.Secondary.SetMinLevel(Info)
+			close()
 			expected := fnExpected(tc.DoWork, false) // unbuffered
 			actual := buf1.Bytes()
 			if !bytes.Equal(expected, actual) {
@@ -246,6 +260,8 @@ func Test_TeeLogger(t *testing.T) {
 }
 
 func minLevel(l Logger) {
+	l.SetMinLevel(Info)
+
 	for _, level := range []Level{Transient, Verbose, Info, Warning, Error} {
 		l.SetMinLevel(level)
 		l.Transient("this is a transient line")
@@ -274,6 +290,8 @@ func newlineVariations(l Logger) {
 }
 
 func moveBetweenAnchors(l Logger) {
+	l.SetMinLevel(Info)
+
 	f := []Logger{
 		AddAnchor(l),
 		AddAnchor(l),
@@ -291,6 +309,8 @@ func moveBetweenAnchors(l Logger) {
 }
 
 func addAndRemoveAnchors(l Logger) {
+	l.SetMinLevel(Info)
+
 	l.Info("before adding anchored logger 1")
 	fl := AddAnchor(l)
 	fl.Transient("first anchored line")
@@ -318,6 +338,8 @@ func addAndRemoveAnchors(l Logger) {
 }
 
 func fields(l Logger) {
+	l.SetMinLevel(Info)
+
 	// bool
 	l.Info("bool", Bool("true", true))
 	l.Warning("bool", Bool("false", false))
@@ -410,6 +432,7 @@ func fields(l Logger) {
 }
 
 func withFieldsAndOptions(l Logger) {
+	l.SetMinLevel(Info)
 	lf := WithFields(l, String("foo", "bar"))
 
 	lf.Info("customized logger", Int("n", 100))
@@ -421,12 +444,19 @@ func withFieldsAndOptions(l Logger) {
 	lf = WithOptionsAndFields(l, []PrinterOption{POPalette(DarkPalette)}, []Fielder{String("palette", "dark")})
 
 	lf.Info("customized logger", Int("n", 100))
-	lf.LogImpl(0, []PrinterOption{POPalette(DefaultPalette)}, Warning, "local option overrides customized option", []Fielder{String("palette", "color")})
+	lf.LogImpl(
+		Warning,
+		"local option overrides customized option",
+		[]Fielder{String("palette", "color")},
+		[]PrinterOption{POPalette(DefaultPalette)},
+		ImplData{},
+	)
 
 	l.Verbose("original logger does not include added fields or options")
 }
 
 func withFieldsAndAnchors(l Logger) {
+	l.SetMinLevel(Info)
 	l.Info("before adding anchor or fields")
 	la := AddAnchor(WithFields(l, String("where", "inner")))
 	lf := WithFields(la, Bool("static", true))
@@ -438,18 +468,4 @@ func withFieldsAndAnchors(l Logger) {
 	RemoveAnchor(la)
 	lf.Warning("now that the anchor is gone, lf should pass to the parent")
 	l.Info("after removing anchored logger")
-}
-
-func Test_Anchor_Close(t *testing.T) {
-	var buf bytes.Buffer
-	log := NewBuffered(&buf, false, &TextPrinter{})
-	fl := AddAnchor(log)
-
-	// Anchor panics if you call close (you should only call the parent's close)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Expected panic")
-		}
-	}()
-	fl.Close()
 }

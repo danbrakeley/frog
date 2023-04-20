@@ -15,7 +15,7 @@ const (
 	JSON
 )
 
-// HasTerminal returns true if the passed writer is connected to a terminal
+// HasTerminal returns true if the passed writer is connected to a terminal.
 func HasTerminal(w io.Writer) bool {
 	f, ok := w.(*os.File)
 	if !ok {
@@ -31,7 +31,7 @@ func HasTerminal(w io.Writer) bool {
 // - JSON - no colors or anchored lines, no buffering, and each line is a valid JSON object
 // Resulting Logger can be modified by including 1 or more NewOpts after the NewLogger type.
 // The caller is responsible for calling Close() when done with the returned Logger.
-func New(t NewLogger, opts ...PrinterOption) Logger {
+func New(t NewLogger, opts ...PrinterOption) RootLogger {
 	hasTerminal := false
 	if t == Auto {
 		hasTerminal = HasTerminal(os.Stdout)
@@ -86,7 +86,7 @@ func AddAnchor(log Logger) Logger {
 }
 
 // RemoveAnchor needs to be passed the logger that was returned by AddAnchor.
-// It can also work by being passed a child.
+// It can also work by being passed a child of that Logger.
 func RemoveAnchor(log Logger) {
 	var ar AnchorRemover
 	var ok bool
@@ -114,17 +114,21 @@ func Parent(log Logger) Logger {
 	return child.Parent()
 }
 
-// WithFields creates a new Logger that will always include the specified fields
+// WithFields creates a new Logger that wraps the parent logger, adding the specified
+// fields when the returned Logger is used, but leaving the parent unmodified.
 func WithFields(log Logger, fields ...Fielder) Logger {
 	return newCustomizerLogger(log, nil, fields)
 }
 
-// WithOptions creates a new Logger that will always include the specified options
+// WithOptions creates a new Logger that wraps the passed Logger, adding the specified
+// PrinterOptions when the returned Logger is used, but leaving the parent unmodified.
 func WithOptions(log Logger, opts ...PrinterOption) Logger {
 	return newCustomizerLogger(log, opts, nil)
 }
 
-// WithOptionsAndFields creates a new Logger that will always include the specified fields and options
+// WithOptionsAndFields creates a new Logger that wraps the passed Logger, adding the
+// specified fields and PrinterOptions when the return Logger is used, but leaving
+// the parent unmodified.
 func WithOptionsAndFields(log Logger, opts []PrinterOption, fields []Fielder) Logger {
 	return newCustomizerLogger(log, opts, fields)
 }
