@@ -173,6 +173,19 @@ func Test_JSONPrinter(t *testing.T) {
 	}
 }
 
+func FindFirstDiffIndex(a, b []byte) int {
+	max := len(a)
+	if max < len(b) {
+		max = len(b)
+	}
+	for i := 0; i < max; i++ {
+		if a[i] != b[i] {
+			return i
+		}
+	}
+	return -1
+}
+
 func Test_TeeLogger(t *testing.T) {
 	cases := []struct {
 		Name   string
@@ -215,19 +228,20 @@ func Test_TeeLogger(t *testing.T) {
 			tee.Primary.SetMinLevel(Transient)
 			tee.Secondary.SetMinLevel(Transient)
 			tc.DoWork(tee)
-			// ...but reset before closing (Buffered will send debug out when the log is closed)
-			tee.Primary.SetMinLevel(Info)
-			tee.Secondary.SetMinLevel(Info)
 			close()
 			expected := fnExpected(tc.DoWork, true)
 			actual := buf1.Bytes()
 			if !bytes.Equal(expected, actual) {
-				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
+				t.Errorf("TeeLogger expected:\n%s\nActual:\n%s\nFirst diff at offset: %d",
+					string(expected), string(actual), FindFirstDiffIndex(expected, actual),
+				)
 			}
 			expected = fnExpected(tc.DoWork, false)
 			actual = buf2.Bytes()
 			if !bytes.Equal(expected, actual) {
-				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
+				t.Errorf("TeeLogger expected:\n%s\nActual:\n%s\nFirst diff at offset: %d",
+					string(expected), string(actual), FindFirstDiffIndex(expected, actual),
+				)
 			}
 		})
 		t.Run(tc.Name+".swap.tee", func(t *testing.T) {
@@ -241,35 +255,75 @@ func Test_TeeLogger(t *testing.T) {
 			tee.Primary.SetMinLevel(Transient)
 			tee.Secondary.SetMinLevel(Transient)
 			tc.DoWork(tee)
-			// ...but reset before closing (Buffered will send debug out when the log is closed)
-			tee.Primary.SetMinLevel(Info)
-			tee.Secondary.SetMinLevel(Info)
 			close()
 			expected := fnExpected(tc.DoWork, false) // unbuffered
 			actual := buf1.Bytes()
 			if !bytes.Equal(expected, actual) {
-				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
+				t.Errorf("TeeLogger expected:\n%s\nActual:\n%s\nFirst diff at offset: %d",
+					string(expected), string(actual), FindFirstDiffIndex(expected, actual),
+				)
 			}
 			expected = fnExpected(tc.DoWork, false) // unbuffered
 			actual = buf2.Bytes()
 			if !bytes.Equal(expected, actual) {
-				t.Fatalf("TeeLogger expected:\n%s\nActual:\n%s", string(expected), string(actual))
+				t.Errorf("TeeLogger expected:\n%s\nActual:\n%s\nFirst diff at offset: %d",
+					string(expected), string(actual), FindFirstDiffIndex(expected, actual),
+				)
 			}
 		})
 	}
 }
 
+// helpers
+
+// logNote is meant to be used with the "DoWork" funcs
+func logNote(log Logger, msg string) {
+	m := log.MinLevel()
+	log.SetMinLevel(Info)
+	WithOptions(log, POLevel(false)).Info("-- " + msg)
+	log.SetMinLevel(m)
+}
+
 func minLevel(l Logger) {
 	l.SetMinLevel(Info)
 
-	for _, level := range []Level{Transient, Verbose, Info, Warning, Error} {
-		l.SetMinLevel(level)
-		l.Transient("this is a transient line")
-		l.Verbose("this is a verbose line")
-		l.Info("this is an info line")
-		l.Warning("this is a warning line")
-		l.Error("this is an error line")
+	runLines := func(log Logger, msg string) {
+		logNote(l, msg)
+		for _, level := range []Level{Transient, Verbose, Info, Warning, Error} {
+			log.SetMinLevel(level)
+			log.Transient("this is a transient line")
+			log.Verbose("this is a verbose line")
+			log.Info("this is an info line")
+			log.Warning("this is a warning line")
+			log.Error("this is an error line")
+		}
 	}
+
+	l.SetMinLevel(Transient)
+
+	// nested min levels
+	l2 := WithFields(l, Int("level", 2))
+	l3 := AddAnchor(l2)
+	l4 := WithFields(l3, Int("level", 4))
+
+	l2.SetMinLevel(Error)
+	l3.SetMinLevel(Warning)
+	runLines(l4, "custom/* -> anchor/warning -> custom/error -> root/transient")
+	l4.SetMinLevel(Error)
+
+	l2.SetMinLevel(Error)
+	runLines(l3, "anchor/* -> custom/error -> root/transient")
+	l3.SetMinLevel(Error)
+	RemoveAnchor(l3)
+
+	runLines(l2, "custom/* -> root/transient")
+
+	l.SetMinLevel(Error)
+	runLines(l2, "custom/* -> root/error")
+	l.SetMinLevel(Transient)
+	l2.SetMinLevel(Error)
+
+	runLines(l, "only the root")
 }
 
 func newlineVariations(l Logger) {

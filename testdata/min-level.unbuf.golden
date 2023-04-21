@@ -1,3 +1,38 @@
+-- custom/* -> anchor/warning -> custom/error -> root/transient
+[ERR] this is an error line    level=2 level=4
+[ERR] this is an error line    level=2 level=4
+[ERR] this is an error line    level=2 level=4
+[ERR] this is an error line    level=2 level=4
+[ERR] this is an error line    level=2 level=4
+-- anchor/* -> custom/error -> root/transient
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+-- custom/* -> root/transient
+[==>] this is a transient line      level=2
+[dbg] this is a verbose line   level=2
+[nfo] this is an info line     level=2
+[WRN] this is a warning line   level=2
+[ERR] this is an error line    level=2
+[dbg] this is a verbose line   level=2
+[nfo] this is an info line     level=2
+[WRN] this is a warning line   level=2
+[ERR] this is an error line    level=2
+[nfo] this is an info line     level=2
+[WRN] this is a warning line   level=2
+[ERR] this is an error line    level=2
+[WRN] this is a warning line   level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+-- custom/* -> root/error
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+[ERR] this is an error line    level=2
+-- only the root
 [==>] this is a transient line
 [dbg] this is a verbose line
 [nfo] this is an info line

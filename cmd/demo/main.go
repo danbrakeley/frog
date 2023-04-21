@@ -39,7 +39,7 @@ func main() {
 	)
 	defer log.Close()
 
-	log.Info("Frog Example App")
+	log.Info("Frog Demo App")
 	flag.VisitAll(func(f *flag.Flag) {
 		log.Info(fmt.Sprintf("  --%s :: %s", f.Name, f.Usage))
 	})

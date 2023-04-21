@@ -1,3 +1,38 @@
+[37m[97m-- custom/* -> anchor/warning -> custom/error -> root/transient[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2 [31mlevel=[91m4[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2 [31mlevel=[91m4[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2 [31mlevel=[91m4[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2 [31mlevel=[91m4[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2 [31mlevel=[91m4[0m
+[37m[97m-- anchor/* -> custom/error -> root/transient[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[37m[97m-- custom/* -> root/transient[0m
+[90m[==>] [32mthis is a transient line      [90mlevel=[32m2[0m
+[36m[dbg] [96mthis is a verbose line   [36mlevel=[96m2[0m
+[37m[nfo] [97mthis is an info line     [37mlevel=[97m2[0m
+[33m[WRN] [93mthis is a warning line   [33mlevel=[93m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[36m[dbg] [96mthis is a verbose line   [36mlevel=[96m2[0m
+[37m[nfo] [97mthis is an info line     [37mlevel=[97m2[0m
+[33m[WRN] [93mthis is a warning line   [33mlevel=[93m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[37m[nfo] [97mthis is an info line     [37mlevel=[97m2[0m
+[33m[WRN] [93mthis is a warning line   [33mlevel=[93m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[33m[WRN] [93mthis is a warning line   [33mlevel=[93m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[37m[97m-- custom/* -> root/error[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[31m[ERR] [91mthis is an error line    [31mlevel=[91m2[0m
+[37m[97m-- only the root[0m
 [90m[==>] [32mthis is a transient line[0m
 [36m[dbg] [96mthis is a verbose line[0m
 [37m[nfo] [97mthis is an info line[0m

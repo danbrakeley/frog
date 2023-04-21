@@ -1,3 +1,38 @@
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"-- custom/* -\u003e anchor/warning -\u003e custom/error -\u003e root/transient"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2,"level":4}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2,"level":4}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2,"level":4}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2,"level":4}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2,"level":4}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"-- anchor/* -\u003e custom/error -\u003e root/transient"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"-- custom/* -\u003e root/transient"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"transient","msg":"this is a transient line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"verbose","msg":"this is a verbose line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"this is an info line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"this is a warning line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"verbose","msg":"this is a verbose line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"this is an info line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"this is a warning line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"this is an info line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"this is a warning line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"this is a warning line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"-- custom/* -\u003e root/error"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"this is an error line","level":2}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"-- only the root"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"transient","msg":"this is a transient line"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"verbose","msg":"this is a verbose line"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"this is an info line"}

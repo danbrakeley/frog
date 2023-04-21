@@ -9,8 +9,10 @@ type RootLogger interface {
 }
 
 type Logger interface {
-	// MinLevel gets the minimum level that is filtered by this Logger.
-	// This value does not include any min level set by its parent(s).
+	// MinLevel gets the minimum level that is filtered by this Logger instance.
+	// If this Logger is part of a chain of nested Loggers, note that that this only returns the min
+	// level of this link in the chain. This Logger's parents may have more restrictive min levels
+	// that prevent log lines from being displayed.
 	MinLevel() Level
 	// SetMinLevel sets the lowest Level that will be accepted by this Logger.
 	// If this Logger has parent(s), the effective MinLevel will be the max of each logger's min level.

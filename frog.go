@@ -73,9 +73,11 @@ func AddAnchor(log Logger) Logger {
 		tmp = Parent(tmp)
 	}
 
-	// no AnchorAdder, then just return the passed in logger
+	// If there's no AnchorAdder available, then just wrap the given Logger in a NoAnchorLogger.
+	// Note that we can't just return the original Logger here, as the caller is expecting an extra
+	// level of indirection.
 	if aa == nil {
-		return log
+		return newNoAnchor(log)
 	}
 
 	alog := aa.AddAnchor(log)

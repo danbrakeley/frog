@@ -42,13 +42,11 @@ func main() {
 	}
 
 	sleep(800)
-	log.Info("main thread reporting in")
+	log.Info("main thread reporting in with a really, really long line that just goes on and on and on and on and never seems to end because it keeps going and going and going and oh wow it is still going right up until it stops")
 	sleep(400)
-	log.Warning("main thread warning")
+	log.Warning("main thread again, this time with a warning line that is also unusually long and full of clauses that just keep appending themselves without really ever stopping for maybe a punctuation mark or whatever but no this line just keeps going and goin and going and did you notice I missed a g back there crazy right where is my head at")
 	sleep(500)
-	log.Info("main thread reporting in")
-	sleep(1000)
-	log.Info("main thread reporting in")
+	log.Info("more from main thread, but this line is a lot shorter")
 
 	wg.Wait()
 	log.Info("done!")
@@ -57,7 +55,11 @@ func main() {
 func runProcess(log frog.Logger, n int) {
 	log.Info("thread started", frog.Int("thread", n))
 	for j := 0; j <= 100; j++ {
-		log.Transient(" + Status that is really really long so long that it will probably fall off the end of the terminal edge which is exactly what I want to check...", frog.Int("thread", n), frog.Int("percent", j))
+		log.Transient(
+			" + Status that is really, really long; so long that it will probably fall off the end of the terminal edge... which is exactly what I want to check...",
+			frog.Int("thread", n),
+			frog.Int("percent", j),
+		)
 		time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
 	}
 }
