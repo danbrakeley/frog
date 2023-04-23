@@ -1,22 +1,43 @@
 package frog
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 )
 
 type Field struct {
-	IsJSONString bool // if true, the string in Value should be bookended by double quotes to be valid JSON
-	IsJSONSafe   bool // if true, this string only contains alpha-numerics, spaces, and safe punctuation
 	Name         string
 	Value        string
-	Raw          interface{}
+	IsJSONString bool // if true, the string in Value should be bookended by double quotes to be valid JSON
+	IsJSONSafe   bool // if true, this string only contains alpha-numerics, spaces, and safe punctuation
 }
 
 // Fielder is an interface used to add structured logging to calls to Logger methods
 type Fielder interface {
 	Field() Field
+}
+
+// Fieldify takes a slice of Fielders and calls Field() on each, resulting in a slice of Fields
+func Fieldify(f []Fielder) []Field {
+	fields := make([]Field, len(f))
+	for i := range f {
+		fields[i] = f[i].Field()
+	}
+	return fields
+}
+
+// FieldifyAndAppend returns a slice of Fields that starts with a copy the passed in []Field,
+// and then appends the passed in []Fielder, after first rendering them to Fields.
+func FieldifyAndAppend(fields []Field, fielders []Fielder) []Field {
+	var out []Field
+	if len(fielders)+len(fields) > 0 {
+		out = make([]Field, len(fields), len(fielders)+len(fields))
+		copy(out, fields)
+		for _, fielder := range fielders {
+			out = append(out, fielder.Field())
+		}
+	}
+	return out
 }
 
 // Bool adds a field whose value will be true or false
@@ -45,8 +66,8 @@ func Err(value error) FieldError {
 }
 
 // Float32 adds a 32-bit floating point number field
-func Float32(name string, value float32) FieldFloat64 {
-	return FieldFloat64{Name: name, Value: float64(value)}
+func Float32(name string, value float32) FieldFloat32 {
+	return FieldFloat32{Name: name, Value: value}
 }
 
 // Float64 adds a 64-bit floating point number field
@@ -100,8 +121,8 @@ func TimeUnix(name string, value time.Time) FieldTimeUnix {
 }
 
 // TimeUnixNano adds a time.Time field that outputs as a unix epoch with nanosecond precision (unsigned integer)
-func TimeUnixNano(name string, value time.Time) FieldTimeUnix {
-	return FieldTimeUnix{Name: name, Value: value, Nano: true}
+func TimeUnixNano(name string, value time.Time) FieldTimeUnixNano {
+	return FieldTimeUnixNano{Name: name, Value: value}
 }
 
 // Uint adds an unsigned integer field
@@ -138,9 +159,9 @@ type FieldBool struct {
 
 func (f FieldBool) Field() Field {
 	if f.Value {
-		return Field{Name: f.Name, Value: "true", Raw: f.Value}
+		return Field{Name: f.Name, Value: "true"}
 	}
-	return Field{Name: f.Name, Value: "false", Raw: f.Value}
+	return Field{Name: f.Name, Value: "false"}
 }
 
 // Duration
@@ -151,7 +172,7 @@ type FieldDuration struct {
 }
 
 func (f FieldDuration) Field() Field {
-	return Field{IsJSONString: true, IsJSONSafe: true, Name: f.Name, Value: f.Value.String(), Raw: f.Value}
+	return Field{Name: f.Name, Value: f.Value.String(), IsJSONString: true, IsJSONSafe: true}
 }
 
 // Error
@@ -165,10 +186,21 @@ func (f FieldError) Field() Field {
 	if f.Value == nil {
 		return Field{Name: f.Name, Value: "null"}
 	}
-	return Field{IsJSONString: true, Name: f.Name, Value: f.Value.Error(), Raw: f.Value}
+	return Field{Name: f.Name, Value: f.Value.Error(), IsJSONString: true}
 }
 
-// Float32, Float64
+// Float32
+
+type FieldFloat32 struct {
+	Name  string
+	Value float32
+}
+
+func (f FieldFloat32) Field() Field {
+	return Field{Name: f.Name, Value: strconv.FormatFloat(float64(f.Value), 'g', -1, 32)}
+}
+
+// Float64
 
 type FieldFloat64 struct {
 	Name  string
@@ -176,7 +208,7 @@ type FieldFloat64 struct {
 }
 
 func (f FieldFloat64) Field() Field {
-	return Field{Name: f.Name, Value: fmt.Sprintf("%g", f.Value), Raw: f.Value}
+	return Field{Name: f.Name, Value: strconv.FormatFloat(f.Value, 'g', -1, 64)}
 }
 
 // Int, Int8, Int16, Int32, Int64
@@ -187,7 +219,7 @@ type FieldInt64 struct {
 }
 
 func (f FieldInt64) Field() Field {
-	return Field{Name: f.Name, Value: strconv.FormatInt(f.Value, 10), Raw: f.Value}
+	return Field{Name: f.Name, Value: strconv.FormatInt(f.Value, 10)}
 }
 
 // String
@@ -198,7 +230,7 @@ type FieldString struct {
 }
 
 func (f FieldString) Field() Field {
-	return Field{IsJSONString: true, IsJSONSafe: false, Name: f.Name, Value: f.Value, Raw: f.Value}
+	return Field{Name: f.Name, Value: f.Value, IsJSONString: true, IsJSONSafe: false}
 }
 
 // Time
@@ -210,20 +242,25 @@ type FieldTimeFormat struct {
 }
 
 func (f FieldTimeFormat) Field() Field {
-	return Field{IsJSONString: true, IsJSONSafe: true, Name: f.Name, Value: f.Value.Format(f.Format), Raw: f.Value}
+	return Field{Name: f.Name, Value: f.Value.Format(f.Format), IsJSONString: true, IsJSONSafe: true}
 }
 
 type FieldTimeUnix struct {
 	Name  string
 	Value time.Time
-	Nano  bool
 }
 
 func (f FieldTimeUnix) Field() Field {
-	if f.Nano {
-		return Field{Name: f.Name, Value: strconv.FormatInt(f.Value.UnixNano(), 10), Raw: f.Value}
-	}
-	return Field{Name: f.Name, Value: strconv.FormatInt(f.Value.Unix(), 10), Raw: f.Value}
+	return Field{Name: f.Name, Value: strconv.FormatInt(f.Value.Unix(), 10)}
+}
+
+type FieldTimeUnixNano struct {
+	Name  string
+	Value time.Time
+}
+
+func (f FieldTimeUnixNano) Field() Field {
+	return Field{Name: f.Name, Value: strconv.FormatInt(f.Value.UnixNano(), 10)}
 }
 
 // Uint, Uint8, Uit16, Uint32, Uint64, Byte
@@ -234,5 +271,5 @@ type FieldUint64 struct {
 }
 
 func (f FieldUint64) Field() Field {
-	return Field{Name: f.Name, Value: strconv.FormatUint(f.Value, 10), Raw: f.Value}
+	return Field{Name: f.Name, Value: strconv.FormatUint(f.Value, 10)}
 }

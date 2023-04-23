@@ -18,7 +18,7 @@ func init() {
 }
 
 type Printer interface {
-	Render(Level, []PrinterOption, string, []Fielder) string
+	Render(Level, []PrinterOption, string, []Field) string
 	SetOptions(...PrinterOption) Printer
 }
 
@@ -85,7 +85,7 @@ func trimNewlines(str string) string {
 	return str
 }
 
-func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Fielder) string {
+func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Field) string {
 	// To override printer options just for this one line, make a copy of the existing printer settings,
 	// then set our one-off options on that copy, then finally call Render on the altered copy.
 	if len(opts) > 0 {
@@ -143,12 +143,11 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 
 	fnWriteFields := func() int {
 		count := 0
-		for i, f := range fields {
+		for i, field := range fields {
 			if i != 0 {
 				sb.WriteByte(' ')
 				count++
 			}
-			field := f.Field()
 			v := field.Value
 			if field.IsJSONString {
 				if !field.IsJSONSafe {
@@ -237,7 +236,7 @@ func (p *JSONPrinter) SetOptions(opts ...PrinterOption) Printer {
 	return p
 }
 
-func (p *JSONPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Fielder) string {
+func (p *JSONPrinter) Render(level Level, opts []PrinterOption, msg string, fields []Field) string {
 	var stamp time.Time
 	if !p.TimeOverride.IsZero() {
 		stamp = p.TimeOverride
@@ -245,27 +244,38 @@ func (p *JSONPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 		stamp = time.Now()
 	}
 
-	out := fmt.Sprintf(`{"timestamp":"%s","level":"%s","msg":"%s"`,
-		stamp.Format(time.RFC3339),
-		level.String(),
-		escapeStringForJSON(trimNewlines(msg)),
-	)
+	var sb strings.Builder
+	sb.Grow(70 + len(msg) + len(fields)*50)
 
-	for _, f := range fields {
-		field := f.Field()
+	sb.WriteString(`{"timestamp":"`)
+	sb.WriteString(stamp.Format(time.RFC3339))
+	sb.WriteString(`","level":"`)
+	sb.WriteString(level.String())
+	sb.WriteString(`","msg":"`)
+	sb.WriteString(escapeStringForJSON(trimNewlines(msg)))
+	sb.WriteString(`"`)
+
+	for _, field := range fields {
 		if field.IsJSONString {
+			sb.WriteString(`,"`)
+			sb.WriteString(field.Name)
+			sb.WriteString(`":"`)
 			if field.IsJSONSafe {
-				out += fmt.Sprintf(`,"%s":"%s"`, field.Name, field.Value)
+				sb.WriteString(field.Value)
 			} else {
-				out += fmt.Sprintf(`,"%s":"%s"`, field.Name, escapeStringForJSON(field.Value))
+				sb.WriteString(escapeStringForJSON(field.Value))
 			}
+			sb.WriteString(`"`)
 		} else {
-			out += fmt.Sprintf(`,"%s":%s`, field.Name, field.Value)
+			sb.WriteString(`,"`)
+			sb.WriteString(field.Name)
+			sb.WriteString(`":`)
+			sb.WriteString(field.Value)
 		}
 	}
 
-	out += "}"
-	return out
+	sb.WriteString(`}`)
+	return sb.String()
 }
 
 func escapeStringForTerminal(s string) string {

@@ -30,37 +30,37 @@ func (l *NoAnchorLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *NoAnchorLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
-	d.MergeMinLevel(l.minLevel) // ensure our minLevel is taken into account
-	l.parent.LogImpl(level, msg, fields, opts, d)
+func (l *NoAnchorLogger) LogImpl(level Level, msg string, fielders []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel)
+	l.parent.LogImpl(level, msg, fielders, opts, d)
 }
 
-func (l *NoAnchorLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Transient, msg, fields, nil, ImplData{})
+func (l *NoAnchorLogger) Transient(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Transient, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *NoAnchorLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
+func (l *NoAnchorLogger) Verbose(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Verbose, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *NoAnchorLogger) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Info, msg, fields, nil, ImplData{})
+func (l *NoAnchorLogger) Info(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Info, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *NoAnchorLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Warning, msg, fields, nil, ImplData{})
+func (l *NoAnchorLogger) Warning(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Warning, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *NoAnchorLogger) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Error, msg, fields, nil, ImplData{})
+func (l *NoAnchorLogger) Error(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Error, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *NoAnchorLogger) Log(level Level, msg string, fields ...Fielder) Logger {
-	l.LogImpl(level, msg, fields, nil, ImplData{})
+func (l *NoAnchorLogger) Log(level Level, msg string, fielders ...Fielder) Logger {
+	l.LogImpl(level, msg, fielders, nil, ImplData{})
 	return l
 }

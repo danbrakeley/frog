@@ -47,8 +47,8 @@ func (l *AnchoredLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *AnchoredLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
-	d.MergeMinLevel(l.minLevel) // ensure our minLevel is taken into account
+func (l *AnchoredLogger) LogImpl(level Level, msg string, fielders []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel)
 
 	var line int32 // 0 if not targetting an anchored line
 
@@ -61,35 +61,35 @@ func (l *AnchoredLogger) LogImpl(level Level, msg string, fields []Fielder, opts
 
 	// set our target anchor line, then pass up to the parent to render
 	d.AnchoredLine = line
-	l.parent.LogImpl(level, msg, fields, opts, d)
+	l.parent.LogImpl(level, msg, fielders, opts, d)
 }
 
-func (l *AnchoredLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Transient, msg, fields, nil, ImplData{})
+func (l *AnchoredLogger) Transient(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Transient, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *AnchoredLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
+func (l *AnchoredLogger) Verbose(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Verbose, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *AnchoredLogger) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Info, msg, fields, nil, ImplData{})
+func (l *AnchoredLogger) Info(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Info, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *AnchoredLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Warning, msg, fields, nil, ImplData{})
+func (l *AnchoredLogger) Warning(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Warning, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *AnchoredLogger) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Error, msg, fields, nil, ImplData{})
+func (l *AnchoredLogger) Error(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Error, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *AnchoredLogger) Log(level Level, msg string, fields ...Fielder) Logger {
-	l.LogImpl(level, msg, fields, nil, ImplData{})
+func (l *AnchoredLogger) Log(level Level, msg string, fielders ...Fielder) Logger {
+	l.LogImpl(level, msg, fielders, nil, ImplData{})
 	return l
 }

@@ -4,15 +4,15 @@ package frog
 type CustomizerLogger struct {
 	parent   Logger
 	opts     []PrinterOption
-	fields   []Fielder
+	fields   []Field
 	minLevel Level // defaults to Transient
 }
 
-func newCustomizerLogger(l Logger, opts []PrinterOption, f []Fielder) *CustomizerLogger {
+func newCustomizerLogger(l Logger, opts []PrinterOption, fielders []Fielder) *CustomizerLogger {
 	return &CustomizerLogger{
 		parent: l,
 		opts:   opts,
-		fields: f,
+		fields: Fieldify(fielders),
 	}
 }
 
@@ -29,39 +29,38 @@ func (l *CustomizerLogger) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *CustomizerLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
-	d.MergeMinLevel(l.minLevel) // ensure our minLevel is taken into account
-
-	// static fields should come first, then any line-specific fields
-	l.parent.LogImpl(level, msg, append(l.fields, fields...), append(l.opts, opts...), d)
+func (l *CustomizerLogger) LogImpl(level Level, msg string, fielders []Fielder, opts []PrinterOption, d ImplData) {
+	d.MergeMinLevel(l.minLevel)
+	d.MergeFields(l.fields)
+	l.parent.LogImpl(level, msg, fielders, append(l.opts, opts...), d)
 }
 
-func (l *CustomizerLogger) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Transient, msg, fields, nil, ImplData{})
+func (l *CustomizerLogger) Transient(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Transient, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *CustomizerLogger) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
+func (l *CustomizerLogger) Verbose(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Verbose, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *CustomizerLogger) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Info, msg, fields, nil, ImplData{})
+func (l *CustomizerLogger) Info(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Info, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *CustomizerLogger) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Warning, msg, fields, nil, ImplData{})
+func (l *CustomizerLogger) Warning(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Warning, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *CustomizerLogger) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Error, msg, fields, nil, ImplData{})
+func (l *CustomizerLogger) Error(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Error, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *CustomizerLogger) Log(level Level, msg string, fields ...Fielder) Logger {
-	l.LogImpl(level, msg, fields, nil, ImplData{})
+func (l *CustomizerLogger) Log(level Level, msg string, fielders ...Fielder) Logger {
+	l.LogImpl(level, msg, fielders, nil, ImplData{})
 	return l
 }

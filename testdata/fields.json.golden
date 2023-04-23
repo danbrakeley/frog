@@ -6,8 +6,8 @@
 {"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"time.Duration","this_long":"4h48m1s"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"error","msg":"error","error":"this is the error"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"error","error":null}
-{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"float32","floatymc":3.333343267440796}
-{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"float32","floatface":-2.0000000072549875e-15}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"float32","floatymc":3.3333433}
+{"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"float32","floatface":-2e-15}
 {"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"float64","flargen":0}
 {"timestamp":"2019-09-10T21:44:00Z","level":"warning","msg":"float64","blargen":-1.234456e+78}
 {"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"int","zero":0}

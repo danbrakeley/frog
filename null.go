@@ -16,29 +16,29 @@ func (n *NullLogger) SetMinLevel(level Level) Logger {
 	return n
 }
 
-func (n *NullLogger) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
+func (n *NullLogger) LogImpl(level Level, msg string, fielders []Fielder, opts []PrinterOption, d ImplData) {
 }
 
-func (n *NullLogger) Transient(format string, a ...Fielder) Logger {
+func (n *NullLogger) Transient(format string, fielders ...Fielder) Logger {
 	return n
 }
 
-func (n *NullLogger) Verbose(format string, a ...Fielder) Logger {
+func (n *NullLogger) Verbose(format string, fielders ...Fielder) Logger {
 	return n
 }
 
-func (n *NullLogger) Info(format string, a ...Fielder) Logger {
+func (n *NullLogger) Info(format string, fielders ...Fielder) Logger {
 	return n
 }
 
-func (n *NullLogger) Warning(format string, a ...Fielder) Logger {
+func (n *NullLogger) Warning(format string, fielders ...Fielder) Logger {
 	return n
 }
 
-func (n *NullLogger) Error(format string, a ...Fielder) Logger {
+func (n *NullLogger) Error(format string, fielders ...Fielder) Logger {
 	return n
 }
 
-func (n *NullLogger) Log(level Level, msg string, fields ...Fielder) Logger {
+func (n *NullLogger) Log(level Level, msg string, fielders ...Fielder) Logger {
 	return n
 }

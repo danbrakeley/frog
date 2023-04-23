@@ -6,8 +6,8 @@
 [WRN] this_long=4h48m1s   time.Duration
 [ERR] error="this is the error"     error
 [WRN] error=null     error
-[nfo] floatymc=3.333343267440796    float32
-[WRN] floatface=-2.0000000072549875e-15       float32
+[nfo] floatymc=3.3333433       float32
+[WRN] floatface=-2e-15    float32
 [nfo] flargen=0      float64
 [WRN] blargen=-1.234456e+78    float64
 [nfo] zero=0    int

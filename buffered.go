@@ -221,7 +221,7 @@ func (l *Buffered) SetMinLevel(level Level) Logger {
 	return l
 }
 
-func (l *Buffered) LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData) {
+func (l *Buffered) LogImpl(level Level, msg string, fielders []Fielder, opts []PrinterOption, d ImplData) {
 	d.MergeMinLevel(l.minLevel)
 
 	keep := false
@@ -237,36 +237,36 @@ func (l *Buffered) LogImpl(level Level, msg string, fields []Fielder, opts []Pri
 	l.ch <- bufmsg{
 		Line:  d.AnchoredLine,
 		Level: level,
-		Msg:   l.prn.Render(level, opts, msg, fields),
+		Msg:   l.prn.Render(level, opts, msg, FieldifyAndAppend(d.Fields, fielders)),
 	}
 }
 
-func (l *Buffered) Transient(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Transient, msg, fields, nil, ImplData{})
+func (l *Buffered) Transient(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Transient, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *Buffered) Verbose(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Verbose, msg, fields, nil, ImplData{})
+func (l *Buffered) Verbose(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Verbose, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *Buffered) Info(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Info, msg, fields, nil, ImplData{})
+func (l *Buffered) Info(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Info, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *Buffered) Warning(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Warning, msg, fields, nil, ImplData{})
+func (l *Buffered) Warning(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Warning, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *Buffered) Error(msg string, fields ...Fielder) Logger {
-	l.LogImpl(Error, msg, fields, nil, ImplData{})
+func (l *Buffered) Error(msg string, fielders ...Fielder) Logger {
+	l.LogImpl(Error, msg, fielders, nil, ImplData{})
 	return l
 }
 
-func (l *Buffered) Log(level Level, msg string, fields ...Fielder) Logger {
-	l.LogImpl(level, msg, fields, nil, ImplData{})
+func (l *Buffered) Log(level Level, msg string, fielders ...Fielder) Logger {
+	l.LogImpl(level, msg, fielders, nil, ImplData{})
 	return l
 }

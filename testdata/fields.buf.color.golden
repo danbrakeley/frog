@@ -6,8 +6,8 @@
 [33m[WRN] [93mtime.Duration       [33mthis_long=[93m4h48m1s[0m
 [31m[ERR] [91merror     [31merror=[91m"this is the error"[0m
 [33m[WRN] [93merror     [33merror=[93mnull[0m
-[37m[nfo] [97mfloat32   [37mfloatymc=[97m3.333343267440796[0m
-[33m[WRN] [93mfloat32   [33mfloatface=[93m-2.0000000072549875e-15[0m
+[37m[nfo] [97mfloat32   [37mfloatymc=[97m3.3333433[0m
+[33m[WRN] [93mfloat32   [33mfloatface=[93m-2e-15[0m
 [37m[nfo] [97mfloat64   [37mflargen=[97m0[0m
 [33m[WRN] [93mfloat64   [33mblargen=[93m-1.234456e+78[0m
 [37m[nfo] [97mint       [37mzero=[97m0[0m

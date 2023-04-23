@@ -118,8 +118,8 @@ func Parent(log Logger) Logger {
 
 // WithFields creates a new Logger that wraps the parent logger, adding the specified
 // fields when the returned Logger is used, but leaving the parent unmodified.
-func WithFields(log Logger, fields ...Fielder) Logger {
-	return newCustomizerLogger(log, nil, fields)
+func WithFields(log Logger, fielders ...Fielder) Logger {
+	return newCustomizerLogger(log, nil, fielders)
 }
 
 // WithOptions creates a new Logger that wraps the passed Logger, adding the specified
@@ -131,6 +131,6 @@ func WithOptions(log Logger, opts ...PrinterOption) Logger {
 // WithOptionsAndFields creates a new Logger that wraps the passed Logger, adding the
 // specified fields and PrinterOptions when the return Logger is used, but leaving
 // the parent unmodified.
-func WithOptionsAndFields(log Logger, opts []PrinterOption, fields []Fielder) Logger {
-	return newCustomizerLogger(log, opts, fields)
+func WithOptionsAndFields(log Logger, opts []PrinterOption, fielders []Fielder) Logger {
+	return newCustomizerLogger(log, opts, fielders)
 }

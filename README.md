@@ -30,17 +30,21 @@ level | description
 
 Anchors require an ANSI-compatible terminal connected to the output.
 
-To add an anchored Logger, call `frog.AddAnchor()` and pass in an existing Logger. Frog will walk up the chain of parent/child Loggers until it finds a Logger that also implements the AnchorAdder inteface. If it finds one, it calls that object's AddLogger on that interface, and if it doesn't, it wraps the passed in Logger in a NoAnchorLogger and returns that. The NoAnchorLogger ensures that the behavior is identical to the caller, so that the resulting Logger chain is of a consistent depth. NoAnchorLogger supports SetMinLevel, just like AnchorLogger does.
+To add an anchored Logger, call `frog.AddAnchor()` and pass in an existing Logger, and it will return a Logger whose Transient log lines will target a newly created anchored line.
 
-Once you have a Logger returned from `frog.AddAnchor()`, sending a Transient log line will have special behavior that involves moving the cursor down to a previously established line in the output, overwriting any existing line, then returning the cursor back up, ready to handle any new log lines like normal. Sending a Verbose, Info, Warning, or Error log line will not alter the anchored line, and instead will output the line as if the line had been sent directly to the anchor's parent Logger.
+Behind the scenes, `AddAnchor` is looking to see if the given Logger or any of its ancestors implement the AnchorAdder interface. Currently `Buffered` is the only included Logger that supports anchors, and its AddAnchor returns an instance of `AnchoredLogger` that wraps the given Logger. If their is no Buffered/AnchorAdder in the ancestry, then it will use `NoAnchorLogger` instead.
 
-Anchored lines are remembered and redraw as more output is logged above them, so that they always show up at the bottom of the output. If you are done with an anchored line and wish to delete it and stop re-drawing it, then call `frog.RemoveAnchor()`, passing in the Logger that was originally returned from `AddAnchor`. This is optional, and calling `Close()` on a RootLogger that has active anchored lines will remove those lines and clean up the output before `Close()` returns.
+Anchored lines are drawn to the terminal using ANSI escape codes for manipulating the cursor. Because the Buffered logger serializes logging from any number of goroutines, it provides a safe environment in which to manipulate cursor position temporarily, and to re-draw anchored lines as needed when they get blown away by non-Transient log lines.
+
+Note that sending a Verbose, Info, Warning, or Error log line via an AnchoredLogger will not target the anchored line, but will log the results as if you had sent the log lines through the parent that was passed into `frog.AddAnchor` in the first place.
+
+When you are done with an anchored line and wish to have it stop redrawing itself at the bottom of the output, just call `frog.RemoveAnchor()` on the logger that was returned from `frog.AddAnchor`. At that point you can keep using the logger if you wish, or discard it.
+
+Calling `RemoveAnchor` is optional.
 
 You are free to `AddAnchor` and `RemoveAnchor` at any time and in any order.
 
-The code that generated the example output above is in [cmd/anchors/main.go](cmd/anchors/main.go).
-
-Here's a TL;DR on that code:
+The code that generated the example shown output is here: [cmd/anchors/main.go](cmd/anchors/main.go), but the core of what it is doing is:
 
 ```go
 func main() {
@@ -76,11 +80,15 @@ $ go run ./cmd/anchors/ -> out.txt && cat out.txt
 
 You can see that no ANSI escape sequences or transient log lines ended up in the resulting file.
 
+## Nesting
+
+TODO: build nested loggers, then draw graph to illustrate the parent/child relationships that are formed
+
 ## Windows compatibility
 
 Frog uses ANSI/VT-100 commands to change colors and move the cursor, and for this to display properly, you must be using Windows 10 build 1511 (circa 2016) or newer, or be using a third-party terminal application like ConEmu/Cmdr or mintty. There's no planned supoprt for the native command prompts of earlier versions of Windows.
 
-Windows Terminal also works great, but has problems with ANSI before the [1.17.1023 Preview build](https://github.com/microsoft/terminal/releases/tag/v1.17.1023) (released on 1 Jan 2023, but as of 20 April 2023, it still isn't in the mainline builds).
+Windows Terminal also works great, but has problems with ANSI before the [1.17.1023 Preview build](https://github.com/microsoft/terminal/releases/tag/v1.17.1023) (released on Jan 1, 2023).
 
 ## Usage
 
@@ -91,16 +99,17 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 ## TODO
 
 - handle dicritics in uicode on long transient lines
-- make some benchmarks, maybe do a pass on performance
+- add benchmarks and a way to view changes over time
 - go doc pass
 - test on linux and mac
 - handle terminal width size changing while an app is running (for anchored lines)
 
 ## Known Issues
 
+- When using anchored lines, if you resize the terminal to be narrowing than when frog was initialized, lines won't be properly cropped, and a long enough line could cause extra wrapping that would break the anchored line's ability to redraw itself. The result would be slightly garbled output. See the TODO in the previous section about this.
 - A single log line will print out all given fields, even if multiple fields use the same name. When outputting JSON, this can result in a JSON object that has multiple fields with the same name. This is not necessarily considered invalid, but it can result in ambiguous behavior.
   - Frog will output the field names in the same order as they are passed to Log/Transient/Verbose/Info/Warning/Error (even when outputting JSON).
-  - When there are parent/child relationships, the fields are printed starting with the parent, and then each child's static fields (if any) are added in order as you traverse down, child to child. Any fields passed directly to the Logger are added last (and thus will print last in the output).
+  - When there are parent/child relationships, the fields are printed starting with the parent, and then each child's static fields (if any) are added in order as you traverse down, child to child. Any fields passed with the log line itself are added last.
 
 ## Release Notes
 
@@ -113,6 +122,7 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 	- `Log()` re-added, is just a passthrough to LogImpl
 	- `LogImpl()` arguments re-ordered, and anchored line moved to new ImplData, which also handles min levels
 - Added `NoAnchorLogger` to ensure consistent nesting behavior when the RootLogger does not support anchors.
+- Removed the "buffered log closing" Debug log line that was previously sent when a Buffered Logger was closed.
 
 ### 0.9.0
 

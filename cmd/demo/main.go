@@ -43,15 +43,15 @@ func main() {
 	flag.VisitAll(func(f *flag.Flag) {
 		log.Info(fmt.Sprintf("  --%s :: %s", f.Name, f.Usage))
 	})
-	var fields []frog.Fielder
+	var fielders []frog.Fielder
 	for i, v := range os.Args {
 		arg := v
 		if i == 0 {
 			arg = filepath.Base(arg)
 		}
-		fields = append(fields, frog.String(fmt.Sprintf("arg%d", i), arg))
+		fielders = append(fielders, frog.String(fmt.Sprintf("arg%d", i), arg))
 	}
-	log.Info("os.Args", fields...)
+	log.Info("os.Args", fielders...)
 
 	log.SetMinLevel(frog.Transient)
 	log.Transient("transient line")

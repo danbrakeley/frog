@@ -18,21 +18,21 @@ type Logger interface {
 	// If this Logger has parent(s), the effective MinLevel will be the max of each logger's min level.
 	SetMinLevel(level Level) Logger
 
-	// Transient logs a string (with optional fields) with the log level set to Transient.
-	Transient(msg string, fields ...Fielder) Logger
-	// Verbose logs a string (with optional fields) with the log level set to Verbose.
-	Verbose(msg string, fields ...Fielder) Logger
-	// Info logs a string (with optional fields) with the log level set to Info.
-	Info(msg string, fields ...Fielder) Logger
-	// Warning logs a string (with optional fields) with the log level set to Warning.
-	Warning(msg string, fields ...Fielder) Logger
-	// Error logs a string (with optional fields) with the log level set to Error.
-	Error(msg string, fields ...Fielder) Logger
-	// Log logs a string (with optional fields) with the log level set to the passed in value.
-	Log(level Level, msg string, fields ...Fielder) Logger
+	// Transient logs a string (with optional fielders) with the log level set to Transient.
+	Transient(msg string, fielders ...Fielder) Logger
+	// Verbose logs a string (with optional fielders) with the log level set to Verbose.
+	Verbose(msg string, fielders ...Fielder) Logger
+	// Info logs a string (with optional fielders) with the log level set to Info.
+	Info(msg string, fielders ...Fielder) Logger
+	// Warning logs a string (with optional fielders) with the log level set to Warning.
+	Warning(msg string, fielders ...Fielder) Logger
+	// Error logs a string (with optional fielders) with the log level set to Error.
+	Error(msg string, fielders ...Fielder) Logger
+	// Log logs a string (with optional fielders) with the log level set to the passed in value.
+	Log(level Level, msg string, fielders ...Fielder) Logger
 
 	// LogImpl is called by children to pass up log events to the root Logger.
-	LogImpl(level Level, msg string, fields []Fielder, opts []PrinterOption, d ImplData)
+	LogImpl(level Level, msg string, fielders []Fielder, opts []PrinterOption, d ImplData)
 }
 
 // ChildLogger is the interface for loggers that feed back to a parent.
