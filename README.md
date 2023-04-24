@@ -99,7 +99,6 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 ## TODO
 
 - handle dicritics in uicode on long transient lines
-- add benchmarks and a way to view changes over time
 - go doc pass
 - test on linux and mac
 - handle terminal width size changing while an app is running (for anchored lines)
@@ -112,6 +111,10 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
   - When there are parent/child relationships, the fields are printed starting with the parent, and then each child's static fields (if any) are added in order as you traverse down, child to child. Any fields passed with the log line itself are added last.
 
 ## Release Notes
+
+### 0.9.3
+
+- Improved JSONPrinter performance by switching to StringBuilder
 
 ### 0.9.2
 
