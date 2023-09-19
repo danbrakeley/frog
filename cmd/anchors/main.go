@@ -16,9 +16,15 @@ func main() {
 	time.Sleep(time.Second)
 
 	wg := new(sync.WaitGroup)
-	wg.Add(3)
-	for i := 0; i < 3; i++ {
-		go doWork(wg, frog.AddAnchor(log), i)
+	count := 3
+	wg.Add(count)
+	for i := 0; i < count; i++ {
+		thread := i
+		go func() {
+			defer wg.Done()
+			doWork(log, thread)
+			doWork(log, thread)
+		}()
 	}
 
 	time.Sleep(time.Second)
@@ -32,8 +38,8 @@ func main() {
 	log.Info("All threads done!")
 }
 
-func doWork(wg *sync.WaitGroup, log frog.Logger, n int) {
-	defer wg.Done()
+func doWork(parent frog.Logger, n int) {
+	log := frog.AddAnchor(parent)
 	defer frog.RemoveAnchor(log)
 
 	log.Transient(" + starting...", frog.Int("thread", n))
@@ -41,6 +47,6 @@ func doWork(wg *sync.WaitGroup, log frog.Logger, n int) {
 
 	for j := 0; j <= 100; j++ {
 		log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
-		time.Sleep(time.Duration(10+rand.Intn(50)) * time.Millisecond)
+		time.Sleep(time.Duration(5+rand.Intn(30)) * time.Millisecond)
 	}
 }

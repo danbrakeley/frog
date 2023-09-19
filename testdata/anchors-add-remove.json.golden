@@ -4,5 +4,6 @@
 {"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"before adding anchored logger 2"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"before adding anchored logger 3"}
 {"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"regular log"}
-{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"another regular log (via fl2)"}
-{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"this should be redirected to parent logger"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"another regular log (via a2)"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"lines from removed anchors go to parents"}
+{"timestamp":"2019-09-10T21:44:00Z","level":"info","msg":"done"}

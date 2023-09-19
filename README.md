@@ -112,6 +112,10 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 
 ## Release Notes
 
+### 0.9.4
+
+- Fixed long standing issue where adding two anchors, removing the first, then adding a third, would result in the second and third anchors both updating the same line in the terminal, instead of two different lines.
+
 ### 0.9.3
 
 - Improved JSONPrinter performance by switching to StringBuilder

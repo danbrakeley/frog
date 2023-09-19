@@ -10,14 +10,19 @@
 [2F[37m[nfo] [97mbefore adding anchored logger 3[0m[K
 [K
 
-[2F[90m[==>] [32mlogger 2 status update A[0m[K[2E
+[2F[90m[==>] [32manchor 2 status update A[0m[K[2E
 [3F[37m[nfo] [97mregular log[0m[K
-[90m[==>] [32mlogger 2 status update A[0m[K
+[90m[==>] [32manchor 2 status update A[0m[K
 [K
-[1F[90m[==>] [32mlogger 3 status update A[0m[K[1E
-[3F[37m[nfo] [97manother regular log (via fl2)[0m[K
-[90m[==>] [32mlogger 2 status update A[0m[K
-[90m[==>] [32mlogger 3 status update A[0m[K
-[1F[90m[==>] [32mlogger 3 status update B[0m[K[1E[2F[90m[==>] [32mlogger 2 status update B[0m[K[2E[1F[K
-[2F[37m[nfo] [97mthis should be redirected to parent logger[0m[K
-[90m[==>] [32mlogger 2 status update B[0m[K
+[1F[90m[==>] [32manchor 3 status update A[0m[K[1E
+[3F[37m[nfo] [97manother regular log (via a2)[0m[K
+[90m[==>] [32manchor 2 status update A[0m[K
+[90m[==>] [32manchor 3 status update A[0m[K
+[1F[90m[==>] [32manchor 3 status update B[0m[K[1E[2F[90m[==>] [32manchor 2 status update B[0m[K[2E[2F[90m[==>] [32manchor 3 status update B[0m[K[1E[K
+[2F[37m[nfo] [97mlines from removed anchors go to parents[0m[K
+[90m[==>] [32manchor 3 status update B[0m[K
+
+[1F[90m[==>] [32manchor 4 status update A[0m[K[1E
+[3F[37m[nfo] [97mdone[0m[K
+[90m[==>] [32manchor 3 status update B[0m[K
+[90m[==>] [32manchor 4 status update A[0m[K

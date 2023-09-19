@@ -18,7 +18,7 @@ func AssertGolden(t *testing.T, testName string, actual []byte) {
 	t.Helper()
 	golden := filepath.Join("testdata", testName+".golden")
 	if *update {
-		ioutil.WriteFile(golden, actual, 0644) //nolint:errcheck
+		ioutil.WriteFile(golden, actual, 0o644) //nolint:errcheck
 	}
 	expected, _ := ioutil.ReadFile(golden)
 	if !bytes.Equal(actual, expected) {
@@ -147,7 +147,7 @@ func Test_JSONPrinter(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name+".json", func(t *testing.T) {
 			var buf bytes.Buffer
-			l := NewUnbuffered(&buf, &JSONPrinter{TimeOverride: time.Date(2019, 9, 10, 21, 44, 00, 00, time.UTC)})
+			l := NewUnbuffered(&buf, &JSONPrinter{TimeOverride: time.Date(2019, 9, 10, 21, 44, 0, 0, time.UTC)})
 			tc.DoWork(l)
 			l.Close()
 			AssertGolden(t, tc.Name+".json", buf.Bytes())
@@ -366,6 +366,39 @@ func addAndRemoveAnchors(l Logger) {
 	l.SetMinLevel(Info)
 
 	l.Info("before adding anchored logger 1")
+	a1 := AddAnchor(l)
+	a1.Transient("first anchored line")
+	l.Warning("main logger should still log properly")
+	a1.Transient("first anchored line again")
+	RemoveAnchor(a1)
+	l.Info("after removing anchored logger 1")
+
+	l.Info("before adding anchored logger 2")
+	a2 := AddAnchor(l)
+	l.Info("before adding anchored logger 3")
+	a3 := AddAnchor(l)
+	a2.Transient("anchor 2 status update A")
+	l.Info("regular log")
+	a3.Transient("anchor 3 status update A")
+	a2.Info("another regular log (via a2)")
+	a3.Transient("anchor 3 status update B")
+	a2.Transient("anchor 2 status update B")
+	RemoveAnchor(a2)
+	a2.Transient("lines from removed anchors go to parents, but this parent is ignoring transient, so this line should not be output")
+	a2.Info("lines from removed anchors go to parents")
+
+	a4 := AddAnchor(l)
+	a4.Transient("anchor 4 status update A")
+	l.Info("done")
+
+	// End now, before removing a3 or a4, because it should be safe to close a logger
+	// without first removing all anchored lines.
+}
+
+func removeThenAddAnchors(l Logger) {
+	l.SetMinLevel(Info)
+
+	l.Info("before adding anchored logger 1")
 	fl := AddAnchor(l)
 	fl.Transient("first anchored line")
 	l.Warning("main logger should still log properly")
@@ -449,20 +482,20 @@ func fields(l Logger) {
 	l.Warning("string", String("long", "this is a relatively long sentence with ʎzɐɹɔ cha\rac\ters i\n it \u0001 \"<<&&>>\""))
 
 	// time
-	l.Info("time.Time", Time("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
-	l.Warning("time.Time", Time("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+	l.Info("time.Time", Time("party", time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)))
+	l.Warning("time.Time", Time("future", time.Date(2038, 7, 13, 2, 55, 13, 12398456, time.UTC)))
 
 	// timenano
-	l.Info("time.Time (nano)", TimeNano("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
-	l.Warning("time.Time (nano)", TimeNano("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+	l.Info("time.Time (nano)", TimeNano("party", time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)))
+	l.Warning("time.Time (nano)", TimeNano("future", time.Date(2038, 7, 13, 2, 55, 13, 12398456, time.UTC)))
 
 	// timeunix
-	l.Info("time.Time (unix)", TimeUnix("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
-	l.Warning("time.Time (unix)", TimeUnix("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+	l.Info("time.Time (unix)", TimeUnix("party", time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)))
+	l.Warning("time.Time (unix)", TimeUnix("future", time.Date(2038, 7, 13, 2, 55, 13, 12398456, time.UTC)))
 
 	// timeunixnano
-	l.Info("time.Time (unix,nano)", TimeUnixNano("party", time.Date(1999, 01, 01, 00, 00, 00, 00, time.UTC)))
-	l.Warning("time.Time (unix,nano)", TimeUnixNano("future", time.Date(2038, 07, 13, 2, 55, 13, 12398456, time.UTC)))
+	l.Info("time.Time (unix,nano)", TimeUnixNano("party", time.Date(1999, 1, 1, 0, 0, 0, 0, time.UTC)))
+	l.Warning("time.Time (unix,nano)", TimeUnixNano("future", time.Date(2038, 7, 13, 2, 55, 13, 12398456, time.UTC)))
 
 	// uint
 	l.Info("uint", Uint("zero", uint(0)))

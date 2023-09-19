@@ -4,5 +4,6 @@
 [nfo] before adding anchored logger 2
 [nfo] before adding anchored logger 3
 [nfo] regular log
-[nfo] another regular log (via fl2)
-[nfo] this should be redirected to parent logger
+[nfo] another regular log (via a2)
+[nfo] lines from removed anchors go to parents
+[nfo] done

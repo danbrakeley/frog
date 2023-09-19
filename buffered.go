@@ -91,7 +91,6 @@ func (l *Buffered) AddAnchor(parent Logger) Logger {
 	lineNum := atomic.AddInt32(&l.openAnchors, 1)
 	l.ch <- bufmsg{Type: mtAddLine, Line: lineNum}
 	onClose := func() {
-		atomic.AddInt32(&l.openAnchors, -1)
 		l.ch <- bufmsg{Type: mtRemoveLine, Line: lineNum}
 	}
 	return newAnchor(parent, lineNum, onClose)
@@ -130,30 +129,7 @@ func (l *Buffered) processor() {
 		case mtAddLine:
 			// ensure terminal scrolls down if needed to add a new line
 			fmt.Fprint(l.writer, "\n")
-
-			// figure out where this new line goes
-			idx := 0
-			for _, v := range anchoredLines {
-				if msg.Line < v.lineNum {
-					break
-				}
-				idx++
-			}
-
-			// and then insert it there
-			anchoredLines = append(anchoredLines, anchoredLine{})
-			copy(anchoredLines[idx+1:], anchoredLines[idx:])
-			anchoredLines[idx] = anchoredLine{lineNum: msg.Line}
-
-			// if inserting has bumped any lines down, re-draw those lines in their new home
-			if idx < len(anchoredLines)-1 {
-				fmt.Fprint(l.writer, ansi.PrevLine(len(anchoredLines)-(idx+1)))
-				for i := idx + 1; i < len(anchoredLines); i++ {
-					fmt.Fprint(l.writer, anchoredLines[i].str)
-					fmt.Fprint(l.writer, ansi.EraseEOL)
-					fmt.Fprint(l.writer, ansi.NextLine(1))
-				}
-			}
+			anchoredLines = append(anchoredLines, anchoredLine{lineNum: msg.Line})
 
 		case mtRemoveLine:
 			// find the line we are removing

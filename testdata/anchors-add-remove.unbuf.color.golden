@@ -4,5 +4,6 @@
 [37m[nfo] [97mbefore adding anchored logger 2[0m
 [37m[nfo] [97mbefore adding anchored logger 3[0m
 [37m[nfo] [97mregular log[0m
-[37m[nfo] [97manother regular log (via fl2)[0m
-[37m[nfo] [97mthis should be redirected to parent logger[0m
+[37m[nfo] [97manother regular log (via a2)[0m
+[37m[nfo] [97mlines from removed anchors go to parents[0m
+[37m[nfo] [97mdone[0m
