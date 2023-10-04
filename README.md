@@ -112,6 +112,12 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 
 ## Release Notes
 
+### 0.9.5
+
+- Added Path and PathAbs fields ("path" and "path_abs", respectively).
+	- PathAbs calls filepath.Abs(), which will have to touch the file system to do its work, so make sure you want that.
+	- Both normalize path separators to '/'. This is still a valid path on Windows, and it avoids escaping '\\' characters.
+
 ### 0.9.4
 
 - Fixed long standing issue where adding two anchors, removing the first, then adding a third, would result in the second and third anchors both updating the same line in the terminal, instead of two different lines.

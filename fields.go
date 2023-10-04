@@ -1,6 +1,7 @@
 package frog
 
 import (
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -98,6 +99,19 @@ func Int32(name string, value int32) FieldInt64 {
 // Int64 adds a 64-bit signed integer field
 func Int64(name string, value int64) FieldInt64 {
 	return FieldInt64{Name: name, Value: value}
+}
+
+// Path adds a field named "path" with the value of the passed in path, with '/' as
+// the path separator ('/' is valid on Windows, and avoids escaping '\\' characters)
+func Path(path string) FieldString {
+	return FieldString{Name: "path", Value: filepath.ToSlash(path)}
+}
+
+// PathAbs adds a field named "path_abs" that contains the result of passing the given
+// path to filepath.Abs(). Similar to Path, '/' is used as the path separator.
+func PathAbs(path string) FieldString {
+	abs, _ := filepath.Abs(path)
+	return FieldString{Name: "path_abs", Value: filepath.ToSlash(abs)}
 }
 
 // String adds an escaped and quoted string field
