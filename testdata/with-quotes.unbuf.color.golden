@@ -1,0 +1,11 @@
+[37m[nfo] [97munquoted[0m
+[37m[nfo] [97m"quoted"[0m
+[37m[nfo] [97munquoted "quoted"[0m
+[37m[nfo] [97m"quoted" unquoted[0m
+[37m[nfo] [97munquoted "quoted" unquoted[0m
+[37m[nfo] [97m"quoted" unquoted "quoted"[0m
+[37m[nfo] [97munquoted ""double quoted"" unquoted[0m
+[37m[nfo] [97munquoted "quoted"   [37mfield=[97munquoted[0m
+[37m[nfo] [97munquoted "quoted"   [37mfield=[97m"\"quoted\""[0m
+[37m[nfo] [97munquoted "quoted"   [37mfield=[97m"unquoted \"quoted\""[0m
+[37m[nfo] [97munquoted "quoted"   [37mfield=[97m"unquoted \"\"double quoted\"\""[0m

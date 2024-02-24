@@ -1,0 +1,11 @@
+[nfo] unquoted
+[nfo] "quoted"
+[nfo] unquoted "quoted"
+[nfo] "quoted" unquoted
+[nfo] unquoted "quoted" unquoted
+[nfo] "quoted" unquoted "quoted"
+[nfo] unquoted ""double quoted"" unquoted
+[nfo] unquoted "quoted"   field=unquoted
+[nfo] unquoted "quoted"   field="\"quoted\""
+[nfo] unquoted "quoted"   field="unquoted \"quoted\""
+[nfo] unquoted "quoted"   field="unquoted \"\"double quoted\"\""

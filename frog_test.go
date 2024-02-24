@@ -41,6 +41,7 @@ func Test_BufferedLogger(t *testing.T) {
 		{"fields", fields},
 		{"with-fields-and-opts", withFieldsAndOptions},
 		{"with-fields-and-anchors", withFieldsAndAnchors},
+		{"with-quotes", withQuotes},
 	}
 
 	for _, tc := range cases {
@@ -80,6 +81,7 @@ func Test_UnbufferedLogger(t *testing.T) {
 		{"fields", fields},
 		{"with-fields-and-opts", withFieldsAndOptions},
 		{"with-fields-and-anchors", withFieldsAndAnchors},
+		{"with-quotes", withQuotes},
 	}
 
 	for _, tc := range cases {
@@ -142,6 +144,7 @@ func Test_JSONPrinter(t *testing.T) {
 		{"fields", fields},
 		{"with-fields-and-opts", withFieldsAndOptions},
 		{"with-fields-and-anchors", withFieldsAndAnchors},
+		{"with-quotes", withQuotes},
 	}
 
 	for _, tc := range cases {
@@ -198,6 +201,7 @@ func Test_TeeLogger(t *testing.T) {
 		{"fields", fields},
 		{"with-fields-and-opts", withFieldsAndOptions},
 		{"with-fields-and-anchors", withFieldsAndAnchors},
+		{"with-quotes", withQuotes},
 	}
 
 	basicPrinter := TextPrinter{printLevel: true}
@@ -555,4 +559,19 @@ func withFieldsAndAnchors(l Logger) {
 	RemoveAnchor(la)
 	lf.Warning("now that the anchor is gone, lf should pass to the parent")
 	l.Info("after removing anchored logger")
+}
+
+func withQuotes(l Logger) {
+	l.SetMinLevel(Info)
+	l.Info("unquoted")
+	l.Info("\"quoted\"")
+	l.Info("unquoted \"quoted\"")
+	l.Info("\"quoted\" unquoted")
+	l.Info("unquoted \"quoted\" unquoted")
+	l.Info("\"quoted\" unquoted \"quoted\"")
+	l.Info("unquoted \"\"double quoted\"\" unquoted")
+	l.Info("unquoted \"quoted\"", String("field", "unquoted"))
+	l.Info("unquoted \"quoted\"", String("field", "\"quoted\""))
+	l.Info("unquoted \"quoted\"", String("field", "unquoted \"quoted\""))
+	l.Info("unquoted \"quoted\"", String("field", "unquoted \"\"double quoted\"\""))
 }

@@ -103,7 +103,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 		useColor = len(colorPrimary) > 0 && len(colorSecondary) > 0
 	}
 
-	msg = escapeStringForTerminal(trimNewlines(msg))
+	msg = escapeMessageForTerminal(trimNewlines(msg))
 
 	var sb strings.Builder
 	sb.Grow(256)
@@ -151,7 +151,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 			v := field.Value
 			if field.IsJSONString {
 				if !field.IsJSONSafe {
-					v = escapeStringForTerminal(v)
+					v = escapeStringFieldForTerminal(v)
 				}
 				if len(v) == 0 || strings.ContainsAny(v, " \\") {
 					v = "\"" + v + "\""
@@ -278,7 +278,28 @@ func (p *JSONPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 	return sb.String()
 }
 
-func escapeStringForTerminal(s string) string {
+func escapeMessageForTerminal(s string) string {
+	sb := strings.Builder{}
+	sb.Grow(len(s) * 2) // worst case
+	for _, r := range s {
+		switch r {
+		case '\t': // TAB
+			sb.WriteString(`\t`)
+		case '\n': // LF
+			sb.WriteString(`\n`)
+		case '\r': // CR
+			sb.WriteString(`\r`)
+		case '\\': // 0x5c
+			sb.WriteString(`\\`)
+		default:
+			// the rest can represent themselves safely
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
+}
+
+func escapeStringFieldForTerminal(s string) string {
 	sb := strings.Builder{}
 	sb.Grow(len(s) * 2) // worst case
 	for _, r := range s {
