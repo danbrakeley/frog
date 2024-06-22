@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/danbrakeley/frog/ansi"
+	"github.com/danbrakeley/ansi"
 )
 
 func main() {

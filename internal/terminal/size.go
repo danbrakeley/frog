@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 
-	"github.com/danbrakeley/frog/ansi"
+	"github.com/danbrakeley/ansi"
 	"github.com/mattn/go-tty"
 )
 
@@ -12,14 +12,14 @@ import (
 func GetSize() (col, row int, err error) {
 	t, err := tty.Open()
 	if err != nil {
-		return 0, 0, fmt.Errorf("Error creating tty: %v", err)
+		return 0, 0, fmt.Errorf("error creating tty: %v", err)
 	}
 	defer t.Close()
 
 	// Switch to raw mode
 	close, err := t.Raw()
 	if err != nil {
-		return 0, 0, fmt.Errorf("Error setting tty to raw mode: %v", err)
+		return 0, 0, fmt.Errorf("error setting tty to raw mode: %v", err)
 	}
 	defer close()
 
@@ -39,7 +39,7 @@ func GetSize() (col, row int, err error) {
 	// Parse response
 	n, err := fmt.Sscanf(string(response), ansi.CSI+"%d;%dR", &row, &col)
 	if err != nil || n != 2 {
-		return 0, 0, fmt.Errorf("Error parsing cursor position: %s", err)
+		return 0, 0, fmt.Errorf("error parsing cursor position: %s", err)
 	}
 
 	return col, row, nil

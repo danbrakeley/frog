@@ -6,7 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/danbrakeley/frog/ansi"
+	"github.com/danbrakeley/ansi"
 	"github.com/danbrakeley/frog/internal/terminal"
 )
 

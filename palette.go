@@ -1,6 +1,6 @@
 package frog
 
-import "github.com/danbrakeley/frog/ansi"
+import "github.com/danbrakeley/ansi"
 
 // Color is the public interface to the underlying ANSI colors.
 type Color byte

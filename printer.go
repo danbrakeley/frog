@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/danbrakeley/frog/ansi"
+	"github.com/danbrakeley/ansi"
 )
 
 var hasEnvVarNoColor = false
