@@ -8,81 +8,81 @@ import (
 )
 
 func main() {
-	fmt.Println(ansi.CSI + ansi.FgBlack + "m" + "FgBlack" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkGray + "m" + "FgDarkGray" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgLightGray + "m" + "FgLightGray" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgWhite + "m" + "FgWhite" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkRed + "m" + "FgDarkRed" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgRed + "m" + "FgRed" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkGreen + "m" + "FgDarkGreen" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgGreen + "m" + "FgGreen" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkYellow + "m" + "FgDarkYellow" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgYellow + "m" + "FgYellow" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkBlue + "m" + "FgDarkBlue" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgBlue + "m" + "FgBlue" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkMagenta + "m" + "FgDarkMagenta" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgMagenta + "m" + "FgMagenta" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgDarkCyan + "m" + "FgDarkCyan" + ansi.CSI + ansi.Reset + "m")
-	fmt.Println(ansi.CSI + ansi.FgCyan + "m" + "FgCyan" + ansi.CSI + ansi.Reset + "m")
+	fmt.Println(ansi.FgBlack + "FgBlack" + ansi.Reset)
+	fmt.Println(ansi.FgDarkGray + "FgDarkGray" + ansi.Reset)
+	fmt.Println(ansi.FgLightGray + "FgLightGray" + ansi.Reset)
+	fmt.Println(ansi.FgWhite + "FgWhite" + ansi.Reset)
+	fmt.Println(ansi.FgDarkRed + "FgDarkRed" + ansi.Reset)
+	fmt.Println(ansi.FgRed + "FgRed" + ansi.Reset)
+	fmt.Println(ansi.FgDarkGreen + "FgDarkGreen" + ansi.Reset)
+	fmt.Println(ansi.FgGreen + "FgGreen" + ansi.Reset)
+	fmt.Println(ansi.FgDarkYellow + "FgDarkYellow" + ansi.Reset)
+	fmt.Println(ansi.FgYellow + "FgYellow" + ansi.Reset)
+	fmt.Println(ansi.FgDarkBlue + "FgDarkBlue" + ansi.Reset)
+	fmt.Println(ansi.FgBlue + "FgBlue" + ansi.Reset)
+	fmt.Println(ansi.FgDarkMagenta + "FgDarkMagenta" + ansi.Reset)
+	fmt.Println(ansi.FgMagenta + "FgMagenta" + ansi.Reset)
+	fmt.Println(ansi.FgDarkCyan + "FgDarkCyan" + ansi.Reset)
+	fmt.Println(ansi.FgCyan + "FgCyan" + ansi.Reset)
 	fmt.Println("")
 
 	fmt.Println(strings.Join([]string{
-		ansi.CSI + ansi.FgDarkGray + "m",
+		ansi.FgDarkGray,
 		"2020.06.28-18:25:17 [==>] ",
-		ansi.CSI + ansi.FgDarkGreen + "m",
+		ansi.FgDarkGreen,
 		"test message        ",
-		ansi.CSI + ansi.FgDarkGray + "m",
+		ansi.FgDarkGray,
 		"field=",
-		ansi.CSI + ansi.FgDarkGreen + "m",
+		ansi.FgDarkGreen,
 		"value",
-		ansi.CSI + ansi.Reset + "m",
+		ansi.Reset,
 	}, ""))
 
 	fmt.Println(strings.Join([]string{
-		ansi.CSI + ansi.FgDarkCyan + "m",
+		ansi.FgDarkCyan,
 		"2020.06.28-18:25:17 [dbg] ",
-		ansi.CSI + ansi.FgCyan + "m",
+		ansi.FgCyan,
 		"test message        ",
-		ansi.CSI + ansi.FgDarkCyan + "m",
+		ansi.FgDarkCyan,
 		"field=",
-		ansi.CSI + ansi.FgCyan + "m",
+		ansi.FgCyan,
 		"value",
-		ansi.CSI + ansi.Reset + "m",
+		ansi.Reset,
 	}, ""))
 
 	fmt.Println(strings.Join([]string{
-		ansi.CSI + ansi.FgLightGray + "m",
+		ansi.FgLightGray,
 		"2020.06.28-18:25:17 [nfo] ",
-		ansi.CSI + ansi.FgWhite + "m",
+		ansi.FgWhite,
 		"test message        ",
-		ansi.CSI + ansi.FgLightGray + "m",
+		ansi.FgLightGray,
 		"field=",
-		ansi.CSI + ansi.FgWhite + "m",
+		ansi.FgWhite,
 		"value",
-		ansi.CSI + ansi.Reset + "m",
+		ansi.Reset,
 	}, ""))
 
 	fmt.Println(strings.Join([]string{
-		ansi.CSI + ansi.FgDarkYellow + "m",
+		ansi.FgDarkYellow,
 		"2020.06.28-18:25:17 [WRN] ",
-		ansi.CSI + ansi.FgYellow + "m",
+		ansi.FgYellow,
 		"test message        ",
-		ansi.CSI + ansi.FgDarkYellow + "m",
+		ansi.FgDarkYellow,
 		"field=",
-		ansi.CSI + ansi.FgYellow + "m",
+		ansi.FgYellow,
 		"value",
-		ansi.CSI + ansi.Reset + "m",
+		ansi.Reset,
 	}, ""))
 
 	fmt.Println(strings.Join([]string{
-		ansi.CSI + ansi.FgDarkRed + "m",
+		ansi.FgDarkRed,
 		"2020.06.28-18:25:17 [ERR] ",
-		ansi.CSI + ansi.FgRed + "m",
+		ansi.FgRed,
 		"test message        ",
-		ansi.CSI + ansi.FgDarkRed + "m",
+		ansi.FgDarkRed,
 		"field=",
-		ansi.CSI + ansi.FgRed + "m",
+		ansi.FgRed,
 		"value",
-		ansi.CSI + ansi.Reset + "m",
+		ansi.Reset,
 	}, ""))
 }

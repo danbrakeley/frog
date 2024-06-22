@@ -59,37 +59,37 @@ func (p *Palette) toANSI() ansicolors {
 func ansiFgColor(c Color) string {
 	switch c {
 	case Black:
-		return ansi.SGR(ansi.FgBlack)
+		return ansi.FgBlack
 	case DarkRed:
-		return ansi.SGR(ansi.FgDarkRed)
+		return ansi.FgDarkRed
 	case DarkGreen:
-		return ansi.SGR(ansi.FgDarkGreen)
+		return ansi.FgDarkGreen
 	case DarkYellow:
-		return ansi.SGR(ansi.FgDarkYellow)
+		return ansi.FgDarkYellow
 	case DarkBlue:
-		return ansi.SGR(ansi.FgDarkBlue)
+		return ansi.FgDarkBlue
 	case DarkMagenta:
-		return ansi.SGR(ansi.FgDarkMagenta)
+		return ansi.FgDarkMagenta
 	case DarkCyan:
-		return ansi.SGR(ansi.FgDarkCyan)
+		return ansi.FgDarkCyan
 	case LightGray:
-		return ansi.SGR(ansi.FgLightGray)
+		return ansi.FgLightGray
 	case DarkGray:
-		return ansi.SGR(ansi.FgDarkGray)
+		return ansi.FgDarkGray
 	case Red:
-		return ansi.SGR(ansi.FgRed)
+		return ansi.FgRed
 	case Green:
-		return ansi.SGR(ansi.FgGreen)
+		return ansi.FgGreen
 	case Yellow:
-		return ansi.SGR(ansi.FgYellow)
+		return ansi.FgYellow
 	case Blue:
-		return ansi.SGR(ansi.FgBlue)
+		return ansi.FgBlue
 	case Magenta:
-		return ansi.SGR(ansi.FgMagenta)
+		return ansi.FgMagenta
 	case Cyan:
-		return ansi.SGR(ansi.FgCyan)
+		return ansi.FgCyan
 	case White:
-		return ansi.SGR(ansi.FgWhite)
+		return ansi.FgWhite
 	}
 	return ""
 }

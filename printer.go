@@ -212,7 +212,7 @@ func (p *TextPrinter) Render(level Level, opts []PrinterOption, msg string, fiel
 	}
 
 	if useColor {
-		sb.WriteString(ansi.CSI + ansi.Reset + "m")
+		sb.WriteString(ansi.Reset)
 	}
 
 	out := sb.String()
