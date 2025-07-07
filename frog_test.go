@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,9 +18,9 @@ func AssertGolden(t *testing.T, testName string, actual []byte) {
 	t.Helper()
 	golden := filepath.Join("testdata", testName+".golden")
 	if *update {
-		ioutil.WriteFile(golden, actual, 0o644) //nolint:errcheck
+		os.WriteFile(golden, actual, 0o644) //nolint:errcheck
 	}
-	expected, _ := ioutil.ReadFile(golden)
+	expected, _ := os.ReadFile(golden)
 	if !bytes.Equal(actual, expected) {
 		t.Fatalf(
 			"golden file %s does not match output:\nGolden File:\n%s\nActual:\n%s",
@@ -38,6 +38,7 @@ func Test_BufferedLogger(t *testing.T) {
 		{"trims-newlines", newlineVariations},
 		{"anchors-movement", moveBetweenAnchors},
 		{"anchors-add-remove", addAndRemoveAnchors},
+		{"anchors-remove-then-add", removeThenAddAnchors},
 		{"fields", fields},
 		{"with-fields-and-opts", withFieldsAndOptions},
 		{"with-fields-and-anchors", withFieldsAndAnchors},

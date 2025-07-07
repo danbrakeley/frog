@@ -14,7 +14,7 @@ func newNoAnchor(parent Logger) *NoAnchorLogger {
 }
 
 func (l *NoAnchorLogger) RemoveAnchor() {
-	// This space intentially left blank.
+	// This space intentionally left blank.
 }
 
 func (l *NoAnchorLogger) Parent() Logger {

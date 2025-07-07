@@ -12,11 +12,13 @@ import (
 	"github.com/danbrakeley/frog"
 )
 
-var verbose = flag.Bool("verbose", false, "drop min level from info to verbose")
-var json = flag.Bool("json", false, "output structured JSON")
-var noTime = flag.Bool("notime", false, "do not include timestamps (ignored if using -json)")
-var noLevel = flag.Bool("nolevel", false, "do not include level (ignored if using -json)")
-var swap = flag.Bool("swap", false, "swap message and fields in each line of output (ignored if using -json)")
+var (
+	verbose = flag.Bool("verbose", false, "drop min level from info to verbose")
+	json    = flag.Bool("json", false, "output structured JSON")
+	noTime  = flag.Bool("notime", false, "do not include timestamps (ignored if using -json)")
+	noLevel = flag.Bool("nolevel", false, "do not include level (ignored if using -json)")
+	swap    = flag.Bool("swap", false, "swap message and fields in each line of output (ignored if using -json)")
+)
 
 func main() {
 	flag.Parse()
@@ -101,9 +103,10 @@ func runProcess(log frog.Logger, n int) {
 	log.Transient(" + starting...", frog.Int("thread", n))
 	time.Sleep(time.Duration(400*n) * time.Millisecond)
 	for j := 0; j <= 100; j++ {
-		if j == 90 {
+		switch j {
+		case 90:
 			log.Verbose("transitioning from downloading to writing", frog.Int("thread", n))
-		} else if j == 100 {
+		case 100:
 			log.Info("finished downloading", frog.Int("thread", n))
 		}
 		log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))

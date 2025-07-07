@@ -7,12 +7,12 @@ Frog is a package for structured logging that is fast, easy to use, good looking
 Frog includes:
 
 - Built-in support for plain text or JSON output.
-- Plain text output optinally supports ANSI colors per log level, including user-defined palettes.
+- Plain text output optionally supports ANSI colors per log level, including user-defined palettes.
   - Respects [NO_COLOR](https://no-color.org) env var
 - [Anchoring](#anchoring) of log lines to the bottom of the terminal output, for progress bars and real-time status updates.
 - Detection of terminal/tty and disabling of ANSI/anchoring when none is found.
 - Nesting of Loggers to add fields, anchored lines, custom line rendering settings, and other custom behavior.
-	- Each additional nested layer adds context without altering its parent(s).
+  - Each additional nested layer adds context without altering its parent(s).
 - User-customizable line rendering via the `Printer` interface.
 - Five log levels:
 
@@ -48,22 +48,22 @@ The code that generated the example shown output is here: [cmd/anchors/main.go](
 
 ```go
 func main() {
-	log := frog.New(frog.Auto)
-	defer log.Close()
+  log := frog.New(frog.Auto)
+  defer log.Close()
 
-	wg := new(sync.WaitGroup)
-	wg.Add(3)
-	for i := 0; i < 3; i++ {
-		go func(log frog.Logger, n int) {
-			defer wg.Done()
-			defer frog.RemoveAnchor(log)
-			for j := 0; j <= 100; j++ {
-				log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
-				time.Sleep(time.Duration(50) * time.Millisecond)
-			}
-		}(frog.AddAnchor(log), i)
-	}
-	wg.Wait()
+  wg := new(sync.WaitGroup)
+  wg.Add(3)
+  for i := 0; i < 3; i++ {
+    go func(log frog.Logger, n int) {
+      defer wg.Done()
+      defer frog.RemoveAnchor(log)
+      for j := 0; j <= 100; j++ {
+        log.Transient(" + Status", frog.Int("thread", n), frog.Int("percent", j))
+        time.Sleep(time.Duration(50) * time.Millisecond)
+      }
+    }(frog.AddAnchor(log), i)
+  }
+  wg.Wait()
 }
 ```
 
@@ -86,7 +86,7 @@ TODO: build nested loggers, then draw graph to illustrate the parent/child relat
 
 ## Windows compatibility
 
-Frog uses ANSI/VT-100 commands to change colors and move the cursor, and for this to display properly, you must be using Windows 10 build 1511 (circa 2016) or newer, or be using a third-party terminal application like ConEmu/Cmdr or mintty. There's no planned supoprt for the native command prompts of earlier versions of Windows.
+Frog uses ANSI/VT-100 commands to change colors and move the cursor, and for this to display properly, you must be using Windows 10 build 1511 (circa 2016) or newer, or be using a third-party terminal application like ConEmu/Cmdr or mintty. There's no planned support for the native command prompts of earlier versions of Windows.
 
 Windows Terminal also works great, but has problems with ANSI before the [1.17.1023 Preview build](https://github.com/microsoft/terminal/releases/tag/v1.17.1023) (released on Jan 1, 2023).
 
@@ -98,7 +98,7 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 
 ## TODO
 
-- handle dicritics in uicode on long transient lines
+- handle diacritics in unicode on long transient lines
 - go doc pass
 - test on linux and mac
 - handle terminal width size changing while an app is running (for anchored lines)
@@ -115,8 +115,8 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 ### 0.9.5
 
 - Added Path and PathAbs fields ("path" and "path_abs", respectively).
-	- PathAbs calls filepath.Abs(), which will have to touch the file system to do its work, so make sure you want that.
-	- Both normalize path separators to '/'. This is still a valid path on Windows, and it avoids escaping '\\' characters.
+  - PathAbs calls filepath.Abs(), which will have to touch the file system to do its work, so make sure you want that.
+  - Both normalize path separators to '/'. This is still a valid path on Windows, and it avoids escaping '\\' characters.
 
 ### 0.9.4
 
@@ -132,8 +132,8 @@ The JSON output from using `frog.JSON` will output each log line as a single JSO
 - Changed frog.Palette from an enum to an array of frog.Color, which allows customizing colors used for each log level.
 - TextPrinter no longer exports any of its fields, and instead users should use the printer options, e.g. POPalette(...)
 - `Logger` interface changes:
-	- `Log()` re-added, is just a passthrough to LogImpl
-	- `LogImpl()` arguments re-ordered, and anchored line moved to new ImplData, which also handles min levels
+  - `Log()` re-added, is just a passthrough to LogImpl
+  - `LogImpl()` arguments re-ordered, and anchored line moved to new ImplData, which also handles min levels
 - Added `NoAnchorLogger` to ensure consistent nesting behavior when the RootLogger does not support anchors.
 - Removed the "buffered log closing" Debug log line that was previously sent when a Buffered Logger was closed.
 

@@ -15,8 +15,8 @@ type poPalette struct {
 	ANSIColors ansicolors
 }
 
-func (_ poPalette) isPrinterOption() {}
-func (_ poPalette) String() string   { return "POPalette" }
+func (poPalette) isPrinterOption() {}
+func (poPalette) String() string   { return "POPalette" }
 
 // Time
 

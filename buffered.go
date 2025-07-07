@@ -26,7 +26,7 @@ type msgType byte
 const (
 	mtPrint      msgType = iota // string to print
 	mtAddLine                   // add an anchored line
-	mtRemoveLine                // remove an acnhored line
+	mtRemoveLine                // remove an anchored line
 )
 
 type bufmsg struct {
@@ -83,7 +83,7 @@ func (l *Buffered) Close() {
 	l.wg.Wait()
 }
 
-// AddAnchor creates a Logger that is "achored" to the bottom of the output.
+// AddAnchor creates a Logger that is "anchored" to the bottom of the output.
 // This "anchoring" is achieved by using ANSI to re-draw the anchored line at
 // the bottom as the output scrolls up.
 // Thread safe.

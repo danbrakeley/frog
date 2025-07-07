@@ -15,5 +15,5 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error getting terminal size: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Width: %d, Height: %d\nTime: %v\n", width, height, time.Now().Sub(start))
+	fmt.Printf("Width: %d, Height: %d\nTime: %v\n", width, height, time.Since(start))
 }

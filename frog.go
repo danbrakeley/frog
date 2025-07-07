@@ -11,6 +11,7 @@ type NewLogger byte
 
 const (
 	Auto NewLogger = iota
+	AutoUnbuffered
 	Basic
 	JSON
 )
@@ -27,6 +28,7 @@ func HasTerminal(w io.Writer) bool {
 
 // New creates a Logger that writes to os.Stdout, depending on the NewLogger type passed to it:
 // - Auto - if terminal detected on stdout, then colors and anchored lines are supported (else, uses Basic)
+// - AutoUnbuffered - includes colors, no anchored lines, no buffering
 // - Basic - no colors or anchored lines, no buffering
 // - JSON - no colors or anchored lines, no buffering, and each line is a valid JSON object
 // Resulting Logger can be modified by including 1 or more NewOpts after the NewLogger type.
@@ -44,6 +46,9 @@ func New(t NewLogger, opts ...PrinterOption) RootLogger {
 	case Auto:
 		prn := TextPrinter{palette: DefaultPalette.toANSI(), printTime: true, printLevel: true, fieldIndent: 20}
 		return NewBuffered(os.Stdout, hasTerminal, prn.SetOptions(opts...))
+	case AutoUnbuffered:
+		prn := TextPrinter{palette: DefaultPalette.toANSI(), printTime: true, printLevel: true, fieldIndent: 20}
+		return NewUnbuffered(os.Stdout, prn.SetOptions(opts...))
 	case Basic:
 		prn := TextPrinter{printTime: true, printLevel: true, fieldIndent: 20}
 		return NewUnbuffered(os.Stdout, prn.SetOptions(opts...))

@@ -1,7 +1,7 @@
 package frog
 
 // ImplData is additional data required to pass from child to parent in order for advanced features
-// like anchoirng to function properly.
+// like anchoring to function properly.
 type ImplData struct {
 	// AnchoredLine should be 0 to indicate no anchor, or any number > 0 to uniquely identify a given
 	// anchored line
