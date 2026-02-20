@@ -32,7 +32,7 @@ Anchors require an ANSI-compatible terminal connected to the output.
 
 To add an anchored Logger, call `frog.AddAnchor()` and pass in an existing Logger, and it will return a Logger whose Transient log lines will target a newly created anchored line.
 
-Behind the scenes, `AddAnchor` is looking to see if the given Logger or any of its ancestors implement the AnchorAdder interface. Currently `Buffered` is the only included Logger that supports anchors, and its AddAnchor returns an instance of `AnchoredLogger` that wraps the given Logger. If their is no Buffered/AnchorAdder in the ancestry, then it will use `NoAnchorLogger` instead.
+Behind the scenes, `AddAnchor` is looking to see if the given Logger or any of its ancestors implement the AnchorAdder interface. Currently `Buffered` is the only included Logger that supports anchors, and its AddAnchor returns an instance of `AnchoredLogger` that wraps the given Logger. If there is no Buffered/AnchorAdder in the ancestry, then it will use `NoAnchorLogger` instead.
 
 Anchored lines are drawn to the terminal using ANSI escape codes for manipulating the cursor. Because the Buffered logger serializes logging from any number of goroutines, it provides a safe environment in which to manipulate cursor position temporarily, and to re-draw anchored lines as needed when they get blown away by non-Transient log lines.
 
@@ -70,7 +70,7 @@ func main() {
 Note that `frog.New(frog.Auto)` automatically detects if a terminal is connected to the output, and if not, it turns off anchors. To see this in action, you can try piping the output of running the previous demo into a file. For example:
 
 ```txt
-$ go run ./cmd/anchors/ -> out.txt && cat out.txt
+$ go run ./cmd/anchors/ > out.txt && cat out.txt
 2023.04.21-03:49:13 [nfo] Spawning example threads...   count=3
 2023.04.21-03:49:15 [nfo] waited for one second...
 2023.04.21-03:49:16 [WRN] waited for two seconds...
