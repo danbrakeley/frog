@@ -56,7 +56,7 @@ func runProcess(log frog.Logger, n int) {
 	log.Info("thread started", frog.Int("thread", n))
 	for j := 0; j <= 100; j++ {
 		log.Transient(
-			" + Status that is really, really long; so long that it will probably fall off the end of the terminal edge... which is exactly what I want to check...",
+			" + 🎃🎃 Status that is really, really long; so long that it will probably fall off the end of the terminal edge... which is exactly what I want to check...",
 			frog.Int("thread", n),
 			frog.Int("percent", j),
 		)
