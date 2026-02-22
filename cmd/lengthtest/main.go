@@ -44,7 +44,7 @@ func main() {
 	sleep(800)
 	log.Info("main thread reporting in with a really, really long line that just goes on and on and on and on and never seems to end because it keeps going and going and going and oh wow it is still going right up until it stops")
 	sleep(400)
-	log.Warning("main thread again, this time with a warning line that is also unusually long and full of clauses that just keep appending themselves without really ever stopping for maybe a punctuation mark or whatever but no this line just keeps going and goin and going and did you notice I missed a g back there crazy right where is my head at")
+	log.Warning("main thread again, this time with a warning line that is also unusually long and full of clauses that just keep appending themselves without really ever stopping for maybe a punctuation mark or whatever but no this line just keeps going and going and going and did you notice I missed a g back there crazy right where is my head at")
 	sleep(500)
 	log.Info("more from main thread, but this line is a lot shorter")
 

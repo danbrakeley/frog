@@ -107,11 +107,33 @@ func Path(path string) FieldString {
 	return FieldString{Name: "path", Value: filepath.ToSlash(path)}
 }
 
+// PathN adds a path field with a custom name. It is a short alias for PathNamed.
+func PathN(name, path string) FieldString {
+	return PathNamed(name, path)
+}
+
+// PathNamed adds a path field with a custom name, with '/' as the path separator.
+func PathNamed(name, path string) FieldString {
+	return FieldString{Name: name, Value: filepath.ToSlash(path)}
+}
+
 // PathAbs adds a field named "path_abs" that contains the result of passing the given
 // path to filepath.Abs(). Similar to Path, '/' is used as the path separator.
 func PathAbs(path string) FieldString {
 	abs, _ := filepath.Abs(path)
 	return FieldString{Name: "path_abs", Value: filepath.ToSlash(abs)}
+}
+
+// PathAbsN adds an absolute path field with a custom name. It is a short alias for PathAbsNamed.
+func PathAbsN(name, path string) FieldString {
+	return PathAbsNamed(name, path)
+}
+
+// PathAbsNamed adds an absolute path field with a custom name, containing the result of
+// passing the given path to filepath.Abs(). Similar to PathAbs, '/' is used as the path separator.
+func PathAbsNamed(name, path string) FieldString {
+	abs, _ := filepath.Abs(path)
+	return FieldString{Name: name, Value: filepath.ToSlash(abs)}
 }
 
 // String adds an escaped and quoted string field
